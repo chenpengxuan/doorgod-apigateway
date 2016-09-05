@@ -1,0 +1,48 @@
+buildscript {
+	ext {
+		springBootVersion = '1.4.0.RELEASE'
+	}
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven { url "http://172.16.100.98/nexus/content/groups/public/"}
+		maven { url "http://repo.spring.io/release" }
+		maven { url "http://repo.spring.io/milestone" }
+		maven { url "http://repo.spring.io/snapshot" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+
+jar {
+	baseName = 'doorgod-apigateway'
+	version = '1.0.0-SNAPSHOT'
+}
+compileJava {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+	options.encoding = 'UTF-8'
+}
+repositories {
+	mavenLocal()
+	mavenCentral()
+	maven { url "http://172.16.100.98/nexus/content/groups/public/"}
+	maven { url "http://repo.spring.io/release" }
+	maven { url "http://repo.spring.io/milestone" }
+	maven { url "http://repo.spring.io/snapshot" }
+}
+
+
+dependencies {
+	compile('org.springframework.boot:spring-boot-starter')
+	compile 'io.vertx:vertx-web:3.3.2'
+	compile 'com.ymatou.disconf:disconf-client:2.6.35'
+	compile 'org.slf4j:slf4j-api:1.7.21'
+	compile 'ch.qos.logback:logback-classic:1.1.7'
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+}

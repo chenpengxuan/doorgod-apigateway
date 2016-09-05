@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property name="pattern"
+		value="%date [%thread] %-5level %logger{40} KEY[%X{logPrefix}] - %msg%n" />
+	<property name="level" value="debug" />
+	<property name="charset" value="UTF-8" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<charset>${charset}</charset>
+			<pattern>${pattern}</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.springframework">
+		<level value="INFO" />
+	</logger>
+
+	<logger name="com.ibatis">
+		<level value="${level}" />
+	</logger>
+
+	<logger name="java.util.sql">
+		<level value="${level}" />
+	</logger>
+	-
+
+	<logger name="com.ymatou.tradeservice">
+		<level value="${level}" />
+	</logger>
+
+	<root level="${level}">
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>
