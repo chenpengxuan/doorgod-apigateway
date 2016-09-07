@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * Created by tuwenjie on 2016/9/5.
  */
 @Component
-@DisconfFile(fileName = "biz.properties")
+//@DisconfFile(fileName = "biz.properties")
 public class BizConfig {
 
 }

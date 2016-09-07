@@ -44,5 +44,6 @@ dependencies {
 	compile 'com.ymatou.disconf:disconf-client:2.6.35'
 	compile 'org.slf4j:slf4j-api:1.7.21'
 	compile 'ch.qos.logback:logback-classic:1.1.7'
+	compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.5.5'
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
