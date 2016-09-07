@@ -19,7 +19,7 @@ public class Sample {
 
     public static final String KEY_DEVICE_ID = "deviceId";
 
-    //样本中除<ip, uri, deviceId>之外，其他维度的值
+    //样本值
     private Map<String, String> dimensionValues = new TreeMap<String, String>( );
 
 

@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Created by tuwenjie on 2016/9/7.
  */
-public abstract class AbstractRule implements Ordered {
+public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> {
 
     private String name;
 
@@ -60,5 +60,10 @@ public abstract class AbstractRule implements Ordered {
 
     public void setApplicableUris(Set<String> applicableUris) {
         this.applicableUris = applicableUris;
+    }
+
+    @Override
+    public int compareTo(AbstractRule o) {
+        return order - o.getOrder();
     }
 }

@@ -28,10 +28,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerReq) {
-        httpServerReq.headers().iterator().forEachRemaining(entry -> {
-            LOGGER.debug("{}:{}", entry.getKey(), entry.getValue());
-        });
-        LOGGER.debug(httpServerReq.remoteAddress().host());
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
         HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), appConfig.getTargetWebServerPort(), appConfig.getTargetWebServerHost(),
                 httpServerReq.uri(),
