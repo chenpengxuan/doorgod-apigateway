@@ -66,4 +66,20 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
     public int compareTo(AbstractRule o) {
         return order - o.getOrder();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractRule that = (AbstractRule) o;
+
+        return name != null ? name.equals(that.name) : that.name == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return name != null ? name.hashCode() : 0;
+    }
 }

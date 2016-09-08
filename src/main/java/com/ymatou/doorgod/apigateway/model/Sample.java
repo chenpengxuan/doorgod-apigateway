@@ -44,4 +44,20 @@ public class Sample {
     public void addDeviceId(HttpServerRequest req) {
         dimensionValues.put(KEY_DEVICE_ID, Utils.getDeviceId(req));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Sample sample = (Sample) o;
+
+        return dimensionValues != null ? dimensionValues.equals(sample.dimensionValues) : sample.dimensionValues == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return dimensionValues != null ? dimensionValues.hashCode() : 0;
+    }
 }

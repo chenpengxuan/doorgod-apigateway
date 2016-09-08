@@ -6,23 +6,29 @@ package com.ymatou.doorgod.apigateway.model;
  */
 public class UriCustomizeOptions {
 
-    //最大并发请求数
-    private int maxConcurrentReqs = -1;
-
-    //超时时间，以毫秒计
-    private int timeout = -1;
-
-    //触发断路所需要的最小请求数
-    private int requestVolumeThresholdOfCircuitBreaker;
-
-    //在满足最小请求数的情形下，触发断路所需要的最小错误百分比
-    private int errorThresholdPercentageOfCircuitBreaker;
+    private HystrixConfig hystrixConfig = new HystrixConfig();
 
     /**
      * 从http请求抓取deviceId的脚本。
      * 实现{@link DeviceIdFetcher}的groovy script
      */
     private String deviceIdFetcherScript;
+
+    public HystrixConfig getHystrixConfig() {
+        return hystrixConfig;
+    }
+
+    public void setHystrixConfig(HystrixConfig hystrixConfig) {
+        this.hystrixConfig = hystrixConfig;
+    }
+
+    public String getDeviceIdFetcherScript() {
+        return deviceIdFetcherScript;
+    }
+
+    public void setDeviceIdFetcherScript(String deviceIdFetcherScript) {
+        this.deviceIdFetcherScript = deviceIdFetcherScript;
+    }
 
     //TODO：降级策略
 

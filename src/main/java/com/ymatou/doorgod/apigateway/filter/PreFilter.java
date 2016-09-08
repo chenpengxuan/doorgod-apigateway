@@ -8,6 +8,8 @@ import org.springframework.core.Ordered;
  */
 public interface PreFilter extends Ordered {
 
+    String name( );
+
     /**
      * http请求是否被接受
      * @param req
