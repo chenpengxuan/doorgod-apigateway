@@ -21,6 +21,11 @@ public class LimitTimesRule extends AbstractRule {
      */
     private String sampleFetcherScript;
 
+    /**
+     * 根据<code>sampleFetcherScript</code>生成的实例
+     */
+    private SampleFetcher sampleFetcher;
+
     public int getStatisticSpan() {
         return statisticSpan;
     }
@@ -51,5 +56,13 @@ public class LimitTimesRule extends AbstractRule {
 
     public void setSampleFetcherScript(String sampleFetcherScript) {
         this.sampleFetcherScript = sampleFetcherScript;
+    }
+
+    public SampleFetcher getSampleFetcher() {
+        return sampleFetcher;
+    }
+
+    public void setSampleFetcher(SampleFetcher sampleFetcher) {
+        this.sampleFetcher = sampleFetcher;
     }
 }

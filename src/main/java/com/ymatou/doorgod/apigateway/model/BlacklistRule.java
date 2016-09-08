@@ -11,11 +11,24 @@ public class BlacklistRule extends AbstractRule {
      */
     private String sampleFetcherScript;
 
+    /**
+     * 根据<code>sampleFetcherScript</code>生成的实例
+     */
+    private SampleFetcher sampleFetcher;
+
     public String getSampleFetcherScript() {
         return sampleFetcherScript;
     }
 
     public void setSampleFetcherScript(String sampleFetcherScript) {
         this.sampleFetcherScript = sampleFetcherScript;
+    }
+
+    public SampleFetcher getSampleFetcher() {
+        return sampleFetcher;
+    }
+
+    public void setSampleFetcher(SampleFetcher sampleFetcher) {
+        this.sampleFetcher = sampleFetcher;
     }
 }
