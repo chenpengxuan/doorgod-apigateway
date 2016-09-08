@@ -1,5 +1,8 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * 限次规则
  * Created by tuwenjie on 2016/9/7.
@@ -15,16 +18,11 @@ public class LimitTimesRule extends AbstractRule {
     //达到上限后，拒绝访问的时长，以秒计，譬如300s
     private int rejectionSpan;
 
-    /**
-     * 从请求中提取统计样本的groovy脚本
-     * 该脚本实现{@link SampleFetcher}接口
-     */
-    private String sampleFetcherScript;
 
     /**
-     * 根据<code>sampleFetcherScript</code>生成的实例
+     * 用来从http请求提取样本的样本维度KEY
      */
-    private SampleFetcher sampleFetcher;
+    private Set<String> dimensionKeys = new HashSet<String>( );
 
     public int getStatisticSpan() {
         return statisticSpan;
@@ -50,19 +48,11 @@ public class LimitTimesRule extends AbstractRule {
         this.rejectionSpan = rejectionSpan;
     }
 
-    public String getSampleFetcherScript() {
-        return sampleFetcherScript;
+    public Set<String> getDimensionKeys() {
+        return dimensionKeys;
     }
 
-    public void setSampleFetcherScript(String sampleFetcherScript) {
-        this.sampleFetcherScript = sampleFetcherScript;
-    }
-
-    public SampleFetcher getSampleFetcher() {
-        return sampleFetcher;
-    }
-
-    public void setSampleFetcher(SampleFetcher sampleFetcher) {
-        this.sampleFetcher = sampleFetcher;
+    public void setDimensionKeys(Set<String> dimensionKeys) {
+        this.dimensionKeys = dimensionKeys;
     }
 }

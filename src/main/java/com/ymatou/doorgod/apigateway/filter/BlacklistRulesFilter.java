@@ -22,6 +22,7 @@ public class BlacklistRulesFilter implements  PreFilter {
 
     @Override
     public boolean pass(HttpServerRequest req) {
+        ruleCache.getBlacklistRules();
         return false;
     }
 

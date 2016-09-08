@@ -1,34 +1,23 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by tuwenjie on 2016/9/7.
  */
 public class BlacklistRule extends AbstractRule {
 
     /**
-     * 从请求中提取统计样本的groovy脚本
-     * 该脚本实现{@link SampleFetcher}接口
+     * 用来从http请求提取样本的样本维度KEY
      */
-    private String sampleFetcherScript;
+    private Set<String> dimensionKeys = new HashSet<String>( );
 
-    /**
-     * 根据<code>sampleFetcherScript</code>生成的实例
-     */
-    private SampleFetcher sampleFetcher;
-
-    public String getSampleFetcherScript() {
-        return sampleFetcherScript;
+    public Set<String> getDimensionKeys() {
+        return dimensionKeys;
     }
 
-    public void setSampleFetcherScript(String sampleFetcherScript) {
-        this.sampleFetcherScript = sampleFetcherScript;
-    }
-
-    public SampleFetcher getSampleFetcher() {
-        return sampleFetcher;
-    }
-
-    public void setSampleFetcher(SampleFetcher sampleFetcher) {
-        this.sampleFetcher = sampleFetcher;
+    public void setDimensionKeys(Set<String> dimensionKeys) {
+        this.dimensionKeys = dimensionKeys;
     }
 }
