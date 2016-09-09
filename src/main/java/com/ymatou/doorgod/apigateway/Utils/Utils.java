@@ -27,6 +27,6 @@ public class Utils {
 
     public static String getDeviceId( HttpServerRequest req)  {
         //TODO:
-        return Sample.NULL_PLACEHOLDER;
+        return Sample.NULL_VALUE_PLACEHOLDER;
     }
 }

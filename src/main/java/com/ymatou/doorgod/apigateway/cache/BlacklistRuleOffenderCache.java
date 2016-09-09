@@ -15,6 +15,10 @@ import java.util.Set;
 @Component
 public class BlacklistRuleOffenderCache implements Cache {
 
+    /**
+     * key: ruleName
+     * value: blacklist of the rule
+     */
     private Map<String, Set<Sample>> offenders = new HashMap<>( );
 
     @PostConstruct

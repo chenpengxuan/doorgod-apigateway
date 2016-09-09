@@ -14,6 +14,12 @@ import java.util.Map;
 @Component
 public class LimitTimesRuleOffenderCache implements Cache {
 
+    /**
+     * key: ruleName
+     * value:
+     *    key: sample
+     *    value: sample + releaseTime
+     */
     private Map<String, Map<Sample, LimitTimesRuleOffender>> offenders = new HashMap<>( );
 
     @PostConstruct
