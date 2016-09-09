@@ -82,4 +82,8 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
     }
+
+    public boolean applicable( String uri ) {
+        return applicableUris.isEmpty() || applicableUris.contains(uri.toLowerCase());
+    }
 }

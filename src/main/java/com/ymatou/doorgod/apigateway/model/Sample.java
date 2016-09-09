@@ -3,6 +3,7 @@ package com.ymatou.doorgod.apigateway.model;
 import com.ymatou.doorgod.apigateway.Utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -11,7 +12,7 @@ import java.util.TreeMap;
  */
 public class Sample {
 
-    public static final String NULL_PLACEHOLDER = "NULL_FLAG";
+    public static final String NULL_VALUE_PLACEHOLDER = "NULL_FLAG";
 
     public static final String KEY_IP = "ip";
 
@@ -28,7 +29,7 @@ public class Sample {
             if ( value != null ) {
                 dimensionValues.put(key, value);
             } else {
-                dimensionValues.put(key, NULL_PLACEHOLDER);
+                dimensionValues.put(key, NULL_VALUE_PLACEHOLDER);
             }
         }
     }
@@ -59,5 +60,14 @@ public class Sample {
     @Override
     public int hashCode() {
         return dimensionValues != null ? dimensionValues.hashCode() : 0;
+    }
+
+    public Sample narrow( Set<String> subKeys ) {
+        Sample sample = new Sample();
+        subKeys.forEach(s -> {
+            sample.addDimensionValue(s, dimensionValues.get(s));
+        });
+
+        return sample;
     }
 }

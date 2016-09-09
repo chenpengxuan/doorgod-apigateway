@@ -15,5 +15,5 @@ public interface PreFilter extends Ordered {
      * @param req
      * @return
      */
-    boolean pass(HttpServerRequest req);
+    boolean pass(HttpServerRequest req, FilterContext context );
 }

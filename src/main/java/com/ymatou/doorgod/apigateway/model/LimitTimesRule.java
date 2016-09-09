@@ -24,6 +24,12 @@ public class LimitTimesRule extends AbstractRule {
      */
     private Set<String> dimensionKeys = new HashSet<String>( );
 
+    /**
+     * <code>dimensionKeys</code>子集，用来定义次数基于那些keys统计
+     * <code>null</code>或空，代表次数基于完整的<code>dimensionKeys</code>统计
+     */
+    private Set<String> groupByKeys = new HashSet<String>();
+
     public int getStatisticSpan() {
         return statisticSpan;
     }
@@ -54,5 +60,13 @@ public class LimitTimesRule extends AbstractRule {
 
     public void setDimensionKeys(Set<String> dimensionKeys) {
         this.dimensionKeys = dimensionKeys;
+    }
+
+    public Set<String> getGroupByKeys() {
+        return groupByKeys;
+    }
+
+    public void setGroupByKeys(Set<String> groupByKeys) {
+        this.groupByKeys = groupByKeys;
     }
 }

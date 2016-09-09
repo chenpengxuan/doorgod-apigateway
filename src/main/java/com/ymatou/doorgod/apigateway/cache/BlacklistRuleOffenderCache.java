@@ -13,7 +13,7 @@ import java.util.Set;
  * Created by tuwenjie on 2016/9/8.
  */
 @Component
-public class BlacklistRuleOffendersCache implements Cache {
+public class BlacklistRuleOffenderCache implements Cache {
 
     private Map<String, Set<Sample>> offenders = new HashMap<>( );
 
