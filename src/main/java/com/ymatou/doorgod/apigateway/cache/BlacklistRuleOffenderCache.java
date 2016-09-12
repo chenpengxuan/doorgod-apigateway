@@ -1,7 +1,9 @@
 package com.ymatou.doorgod.apigateway.cache;
 
+import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRuleOffender;
 import com.ymatou.doorgod.apigateway.model.Sample;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -15,6 +17,9 @@ import java.util.Set;
 @Component
 public class BlacklistRuleOffenderCache implements Cache {
 
+    @Autowired
+    private RuleCache ruleCache;
+
     /**
      * key: ruleName
      * value: blacklist of the rule
@@ -24,7 +29,9 @@ public class BlacklistRuleOffenderCache implements Cache {
     @PostConstruct
     @Override
     public void reload() {
+        for (BlacklistRule rule : ruleCache.getBlacklistRules()) {
 
+        }
     }
 
     public boolean isInBlacklist( String ruleName, Sample sample ) {

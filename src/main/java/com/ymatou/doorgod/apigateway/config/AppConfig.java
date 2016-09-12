@@ -13,14 +13,14 @@ public class AppConfig {
     @Value("${vertxServerPort}")
     private int vertxServerPort;
 
-    @Value("${targetWebServerHost}")
-    private String targetWebServerHost;
+    @Value("${redisUrl}")
+    private String redisUrl;
 
-    @Value("${targetWebServerPort}")
-    private int targetWebServerPort;
+    @Value("${kafkaUrl}")
+    private String kafkaUrl;
 
-    @Value("${enableHystrix}")
-    private boolean enableHystrix;
+    @Value("${maxHttpConnectionPoolSize}")
+    private int maxHttpConnectionPoolSize;
 
     public int getVertxServerPort() {
         return vertxServerPort;
@@ -30,28 +30,28 @@ public class AppConfig {
         this.vertxServerPort = vertxServerPort;
     }
 
-    public String getTargetWebServerHost() {
-        return targetWebServerHost;
+    public String getRedisUrl() {
+        return redisUrl;
     }
 
-    public void setTargetWebServerHost(String targetWebServerHost) {
-        this.targetWebServerHost = targetWebServerHost;
+    public void setRedisUrl(String redisUrl) {
+        this.redisUrl = redisUrl;
     }
 
-    public int getTargetWebServerPort() {
-        return targetWebServerPort;
+    public String getKafkaUrl() {
+        return kafkaUrl;
     }
 
-    public void setTargetWebServerPort(int targetWebServerPort) {
-        this.targetWebServerPort = targetWebServerPort;
+    public void setKafkaUrl(String kafkaUrl) {
+        this.kafkaUrl = kafkaUrl;
     }
 
-    public boolean isEnableHystrix() {
-        return enableHystrix;
+    public int getMaxHttpConnectionPoolSize() {
+        return maxHttpConnectionPoolSize;
     }
 
-    public void setEnableHystrix(boolean enableHystrix) {
-        this.enableHystrix = enableHystrix;
+    public void setMaxHttpConnectionPoolSize(int maxHttpConnectionPoolSize) {
+        this.maxHttpConnectionPoolSize = maxHttpConnectionPoolSize;
     }
 }
 

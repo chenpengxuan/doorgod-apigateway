@@ -52,4 +52,8 @@ public class RuleCache implements Cache {
     public Set<String> getAllDimensionKeys() {
         return allDimensionKeys;
     }
+
+    public Set<BlacklistRule> getBlacklistRules() {
+        return blacklistRules;
+    }
 }

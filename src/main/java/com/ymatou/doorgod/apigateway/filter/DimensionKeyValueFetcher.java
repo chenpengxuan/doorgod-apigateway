@@ -3,12 +3,14 @@ package com.ymatou.doorgod.apigateway.filter;
 import com.ymatou.doorgod.apigateway.Utils.Utils;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 /**
  * Created by tuwenjie on 2016/9/8.
  */
+@Component
 public class DimensionKeyValueFetcher {
 
     public static String KEY_NAME_IP = "ip";

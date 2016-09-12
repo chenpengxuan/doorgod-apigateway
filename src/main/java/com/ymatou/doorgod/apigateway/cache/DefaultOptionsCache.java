@@ -16,7 +16,7 @@ public class DefaultOptionsCache implements Cache {
     @PostConstruct
     @Override
     public void reload() {
-
+        //TODO:从数据库加载配置
     }
 
 

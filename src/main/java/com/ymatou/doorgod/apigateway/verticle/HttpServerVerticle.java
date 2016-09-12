@@ -2,6 +2,7 @@ package com.ymatou.doorgod.apigateway.verticle;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.config.BizConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
@@ -17,16 +18,20 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
+        BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
+
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
 
-        //TODO: more settings
-        //TODO: 启动时预创建连接
         HttpClientOptions httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setConnectTimeout(1000);
+        httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
+        httpClientOptions.setLogActivity(false);
+
 
         HttpClient client = vertx.createHttpClient(httpClientOptions);
         HttpServer server = vertx.createHttpServer();
 
-        if (appConfig.isEnableHystrix()) {
+        if (bizConfig.isEnableHystrix()) {
             server.requestHandler(httpServerReq -> {
                 HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(client, httpServerReq);
                 cmd.observe();

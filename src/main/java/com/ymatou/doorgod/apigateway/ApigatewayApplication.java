@@ -23,13 +23,13 @@ public class ApigatewayApplication {
 				io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
 		ConfigurableApplicationContext springContext = SpringApplication.run(ApigatewayApplication.class, args);
 
-
+		deployVerticles();
 	}
 
-	@PostConstruct
-	public void deployVerticles( ) {
+	private static void deployVerticles( ) {
 		Vertx vertx = Vertx.vertx();
 
-		vertx.deployVerticle(HttpServerVerticle.class.getName(), new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE));
+		vertx.deployVerticle(HttpServerVerticle.class.getName(),
+				new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE));
 	}
 }

@@ -1,7 +1,9 @@
 package com.ymatou.doorgod.apigateway.verticle;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.cache.UriCustomizeOptionsCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.config.BizConfig;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
@@ -28,8 +30,13 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerReq) {
-        AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
-        HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), appConfig.getTargetWebServerPort(), appConfig.getTargetWebServerHost(),
+        if ( httpServerReq.uri().equals("/warmup")) {
+            httpServerReq.response().end("ok");
+            return;
+        }
+        BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
+        UriCustomizeOptionsCache uriCustomizeOptionsCache = SpringContextHolder.getBean(UriCustomizeOptionsCache.class);
+        HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), bizConfig.getTargetWebServerPort(), bizConfig.getTargetWebServerHost(),
                 httpServerReq.uri(),
                 targetResp -> {
                     httpServerReq.response().setChunked(true);
@@ -56,8 +63,12 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                     });
                 });
 
-        //TODO: setTimout for forwardClientReq
+
         forwardClientReq.setChunked(true);
+        int timeout = uriCustomizeOptionsCache.getTimeout(httpServerReq.uri());
+        if ( timeout > 0 ) {
+            forwardClientReq.setTimeout(timeout);
+        }
         forwardClientReq.headers().setAll(httpServerReq.headers());
         httpServerReq.handler(data -> {
             forwardClientReq.write(data);

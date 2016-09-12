@@ -30,6 +30,5 @@ public class UriCustomizeOptions {
         this.dimensionKeyAlias = dimensionKeyAlias;
     }
 
-//TODO：降级策略
 
 }

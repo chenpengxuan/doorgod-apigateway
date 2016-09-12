@@ -7,6 +7,7 @@ import com.ymatou.doorgod.apigateway.model.LimitTimesRuleOffender;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
@@ -14,6 +15,7 @@ import java.util.Date;
 /**
  * Created by tuwenjie on 2016/9/8.
  */
+@Component
 public class LimitTimesRulesFilter extends AbstractPreFilter {
 
     @Autowired
