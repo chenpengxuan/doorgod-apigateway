@@ -1,6 +1,6 @@
 package com.ymatou.doorgod.apigateway.filter;
 
-import com.ymatou.doorgod.apigateway.Utils.Utils;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class DimensionKeyValueFetcher {
     public String fetch(String key, HttpServerRequest httpReq ) {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
-        } else if (KEY_NAME_IP.equals(KEY_NAME_URI)) {
+        } else if (KEY_NAME_URI.equals(KEY_NAME_URI)) {
             return httpReq.uri();
         } else {
             String value = httpReq.getParam(key);

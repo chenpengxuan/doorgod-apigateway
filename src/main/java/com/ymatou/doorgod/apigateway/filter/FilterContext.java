@@ -7,4 +7,5 @@ import com.ymatou.doorgod.apigateway.model.Sample;
  */
 public class FilterContext {
     public Sample sample;
+    public String ruleName;
 }

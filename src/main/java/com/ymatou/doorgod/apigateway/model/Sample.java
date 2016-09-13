@@ -1,6 +1,6 @@
 package com.ymatou.doorgod.apigateway.model;
 
-import com.ymatou.doorgod.apigateway.Utils.Utils;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import java.util.Map;
 import java.util.Set;
@@ -42,9 +42,6 @@ public class Sample {
         dimensionValues.put(KEY_URI, req.uri());
     }
 
-    public void addDeviceId(HttpServerRequest req) {
-        dimensionValues.put(KEY_DEVICE_ID, Utils.getDeviceId(req));
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -8,8 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 
@@ -19,17 +22,20 @@ import javax.annotation.PostConstruct;
 public class ApigatewayApplication {
 
 	public static void main(String[] args) {
+
+		//指示vertx使用logback记日志
 		System.setProperty("vertx.logger-delegate-factory-class-name",
 				io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
 		ConfigurableApplicationContext springContext = SpringApplication.run(ApigatewayApplication.class, args);
 
-		deployVerticles();
+		Vertx vertx = springContext.getBean(Vertx.class);
+
+		deployVerticles( vertx );
 	}
 
-	private static void deployVerticles( ) {
-		Vertx vertx = Vertx.vertx();
-
+	private static void deployVerticles( Vertx vertx ) {
 		vertx.deployVerticle(HttpServerVerticle.class.getName(),
 				new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE));
 	}
+
 }

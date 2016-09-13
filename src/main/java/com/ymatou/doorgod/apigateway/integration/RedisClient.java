@@ -22,6 +22,8 @@ public class RedisClient {
     private StatefulRedisConnection<String, String> connection;
 
 
+
+
     @PostConstruct
     public void init( ) {
         client = com.lambdaworks.redis.RedisClient.create("redis-sentinel://" + appConfig.getRedisUrl());

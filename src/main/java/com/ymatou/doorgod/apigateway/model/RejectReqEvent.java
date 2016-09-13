@@ -6,7 +6,7 @@ package com.ymatou.doorgod.apigateway.model;
  */
 public class RejectReqEvent {
 
-    //"yyyyMMdd HH:mm:ss"
+    //"yyyyMMddHHmmss"
     private String time;
 
     private String filterName;
@@ -14,6 +14,8 @@ public class RejectReqEvent {
     private String ruleName;
 
     private Sample sample;
+
+    private String uri;
 
     public String getTime() {
         return time;
@@ -45,5 +47,13 @@ public class RejectReqEvent {
 
     public void setSample(Sample sample) {
         this.sample = sample;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 }

@@ -7,5 +7,5 @@ import javax.annotation.PostConstruct;
  */
 public interface Cache {
 
-    void reload( );
+    void reload( ) throws Exception;
 }

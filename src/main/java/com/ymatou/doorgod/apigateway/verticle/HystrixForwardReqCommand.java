@@ -4,6 +4,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
@@ -23,11 +24,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private HttpClient httpClient;
 
-    public HystrixForwardReqCommand(HttpClient httpClient, HttpServerRequest httpServerReq) {
+    private Vertx vertx;
+
+    public HystrixForwardReqCommand(HttpClient httpClient, HttpServerRequest httpServerReq,
+                                    Vertx vertx) {
         super(HystrixCommandGroupKey.Factory.asKey(httpServerReq.uri()));
         this.httpClient = httpClient;
         this.httpServerReq = httpServerReq;
-
+        this.vertx = vertx;
     }
 
     @Override
@@ -37,7 +41,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             public void call(Subscriber<? super Void> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient, vertx);
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {

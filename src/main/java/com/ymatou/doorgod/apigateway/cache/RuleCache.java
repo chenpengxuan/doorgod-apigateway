@@ -1,11 +1,14 @@
 package com.ymatou.doorgod.apigateway.cache;
 
+import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -15,17 +18,26 @@ import java.util.stream.Collectors;
  */
 @Component
 public class RuleCache implements Cache {
-    private Set<LimitTimesRule> limitTimesRules = new TreeSet<LimitTimesRule>();
+
+    @Autowired
+    private MySqlClient mySqlClient;
+
 
     private Set<BlacklistRule> blacklistRules = new TreeSet<BlacklistRule>();
 
+    private Set<LimitTimesRule> limitTimesRules = new TreeSet<LimitTimesRule>();
+
+
     private Set<String> allDimensionKeys = new HashSet<String>( );
 
-
+    //TODO: 基于uri的缓存
 
     @PostConstruct
     @Override
-    public void reload() {
+    public void reload() throws Exception {
+        Set[] result = mySqlClient.loadAllRules();
+        blacklistRules = result[0];
+        limitTimesRules = result[1];
         fillDimensionKeys();
     }
 

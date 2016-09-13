@@ -22,6 +22,27 @@ public class AppConfig {
     @Value("${maxHttpConnectionPoolSize}")
     private int maxHttpConnectionPoolSize;
 
+    @Value("${targetServerWarmupUri}")
+    private String targetServerWarmupUri;
+
+    @Value("${initHttpConnections}")
+    private int initHttpConnections;
+
+    @Value("${mySqlHost}")
+    private String mySqlHost;
+
+    @Value("${mySqlPort}")
+    private int mySqlPort;
+
+    @Value("${mySqlUser}")
+    private String mySqlUser;
+
+    @Value("${mySqlPassword}")
+    private String mySqlPassword;
+
+    @Value("${mySqlDbName}")
+    private String mySqlDbName;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -52,6 +73,62 @@ public class AppConfig {
 
     public void setMaxHttpConnectionPoolSize(int maxHttpConnectionPoolSize) {
         this.maxHttpConnectionPoolSize = maxHttpConnectionPoolSize;
+    }
+
+    public String getTargetServerWarmupUri() {
+        return targetServerWarmupUri;
+    }
+
+    public void setTargetServerWarmupUri(String targetServerWarmupUri) {
+        this.targetServerWarmupUri = targetServerWarmupUri;
+    }
+
+    public String getMySqlHost() {
+        return mySqlHost;
+    }
+
+    public void setMySqlHost(String mySqlHost) {
+        this.mySqlHost = mySqlHost;
+    }
+
+    public int getMySqlPort() {
+        return mySqlPort;
+    }
+
+    public void setMySqlPort(int mySqlPort) {
+        this.mySqlPort = mySqlPort;
+    }
+
+    public String getMySqlUser() {
+        return mySqlUser;
+    }
+
+    public void setMySqlUser(String mySqlUser) {
+        this.mySqlUser = mySqlUser;
+    }
+
+    public String getMySqlPassword() {
+        return mySqlPassword;
+    }
+
+    public void setMySqlPassword(String mySqlPassword) {
+        this.mySqlPassword = mySqlPassword;
+    }
+
+    public String getMySqlDbName() {
+        return mySqlDbName;
+    }
+
+    public void setMySqlDbName(String mySqlDbName) {
+        this.mySqlDbName = mySqlDbName;
+    }
+
+    public int getInitHttpConnections() {
+        return initHttpConnections;
+    }
+
+    public void setInitHttpConnections(int initHttpConnections) {
+        this.initHttpConnections = initHttpConnections;
     }
 }
 

@@ -2,7 +2,9 @@ package com.ymatou.doorgod.apigateway.integration;
 
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
 import com.ymatou.doorgod.apigateway.model.StatisticItem;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +20,6 @@ import java.util.Properties;
  */
 @Component
 public class KafkaClient {
-
-    public static final String TOPIC_STATISTIC_ITEM = "doorgod.statisticItem";
 
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
@@ -48,10 +48,19 @@ public class KafkaClient {
     }
 
     public void sendStatisticItem(StatisticItem item ) {
-        ProducerRecord<String, String> record = new ProducerRecord<String, String>(TOPIC_STATISTIC_ITEM, JSON.toJSONString(item));
+        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_STATISTIC_SAMPLE_EVENT, JSON.toJSONString(item));
         producer.send(record, (metadata, exception) -> {
             if (exception != null ) {
                 LOGGER.error("Failed to send statistic item to Kafka", exception);
+            }
+        });
+    }
+
+    public void sendRejectReqEvent(RejectReqEvent event ) {
+        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT, JSON.toJSONString(event));
+        producer.send(record, (metadata, exception) -> {
+            if (exception != null ) {
+                LOGGER.error("Failed to send reject req event to Kafka", exception);
             }
         });
     }
