@@ -16,6 +16,7 @@ public class VertxConfig {
     @Bean
     public Vertx vertx( ) {
         VertxOptions vertxOptions = new VertxOptions();
+        //TODO: specific options
         return Vertx.vertx(vertxOptions);
     }
 }
