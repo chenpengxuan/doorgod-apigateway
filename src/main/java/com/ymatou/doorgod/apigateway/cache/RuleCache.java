@@ -1,14 +1,17 @@
 package com.ymatou.doorgod.apigateway.cache;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
+import com.ymatou.doorgod.apigateway.model.BlacklistRule;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -30,7 +33,9 @@ public class RuleCache implements Cache {
 
     private Set<String> allDimensionKeys = new HashSet<String>( );
 
-    //TODO: 基于uri的缓存
+    //基于uri的缓存, key: uri
+    private LoadingCache<String, Set<BlacklistRule>> uriToBlacklistRulesCache;
+    private LoadingCache<String, Set<LimitTimesRule>> uriToLimitTimesRulesCache;
 
     @PostConstruct
     @Override
@@ -39,16 +44,40 @@ public class RuleCache implements Cache {
         blacklistRules = result[0];
         limitTimesRules = result[1];
         fillDimensionKeys();
+
+        if (uriToBlacklistRulesCache == null) {
+            uriToBlacklistRulesCache = CacheBuilder.newBuilder()
+                    .maximumSize(Constants.MAX_CACHED_URIS)
+                    .build(
+                            new CacheLoader<String, Set<BlacklistRule>>() {
+                                public Set<BlacklistRule> load(String uri) {
+                                    return blacklistRules.stream().filter(blacklistRule -> blacklistRule.applicable(uri))
+                                            .collect(Collectors.toCollection(TreeSet::new));
+                                }
+                            });
+        }
+
+        if (uriToLimitTimesRulesCache == null) {
+            uriToLimitTimesRulesCache = CacheBuilder.newBuilder()
+                    .maximumSize(Constants.MAX_CACHED_URIS)
+                    .build(
+                            new CacheLoader<String, Set<LimitTimesRule>>() {
+                                public Set<LimitTimesRule> load(String uri) {
+                                    return limitTimesRules.stream().filter(blacklistRule -> blacklistRule.applicable(uri))
+                                            .collect(Collectors.toCollection(TreeSet::new));
+                                }
+                            });
+        }
+        uriToBlacklistRulesCache.cleanUp();
+        uriToLimitTimesRulesCache.cleanUp();
     }
 
     public Set<LimitTimesRule> applicableLimitTimesRules( String uri ) {
-        return limitTimesRules.stream().filter(limitTimesRule -> limitTimesRule.applicable(uri))
-                .collect(Collectors.toCollection(TreeSet::new));
+        return uriToLimitTimesRulesCache.getUnchecked(uri);
     }
 
     public Set<BlacklistRule> applicableBlacklistRules( String uri ) {
-        return blacklistRules.stream().filter(blacklistRule -> blacklistRule.applicable(uri))
-                .collect(Collectors.toCollection(TreeSet::new));
+        return uriToBlacklistRulesCache.getUnchecked(uri);
     }
 
     private Set<String> fillDimensionKeys( ) {

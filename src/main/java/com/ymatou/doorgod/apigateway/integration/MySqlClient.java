@@ -1,10 +1,10 @@
 package com.ymatou.doorgod.apigateway.integration;
 
+import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.model.ScopeEnum;
 import com.ymatou.doorgod.apigateway.utils.Constants;
-import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -50,7 +50,7 @@ public class MySqlClient {
                                 queryEvent.result().getRows().stream().forEach(entries -> {
 
                                     try {
-                                        if (Constants.RULE_TYPE_LIMIT_TIMES_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
+                                        if (Constants.RULE_TYPE_NAME_LIMIT_TIMES_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
 
                                             LimitTimesRule rule = new LimitTimesRule();
                                             rule.setDimensionKeys(Utils.splitByComma(entries.getString("keys")));
@@ -64,7 +64,7 @@ public class MySqlClient {
                                             rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
                                             limitTimesRules.add(rule);
 
-                                        } else if (Constants.RULE_TYPE_BLACKLIST_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
+                                        } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
 
                                             BlacklistRule rule = new BlacklistRule();
                                             rule.setScope(ScopeEnum.valueOf(entries.getString("scope")));

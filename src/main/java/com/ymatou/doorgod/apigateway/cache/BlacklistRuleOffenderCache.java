@@ -1,7 +1,6 @@
 package com.ymatou.doorgod.apigateway.cache;
 
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRuleOffender;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

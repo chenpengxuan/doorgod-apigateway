@@ -2,11 +2,8 @@ package com.ymatou.doorgod.apigateway.verticle;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
-import com.ymatou.doorgod.apigateway.config.AppConfig;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

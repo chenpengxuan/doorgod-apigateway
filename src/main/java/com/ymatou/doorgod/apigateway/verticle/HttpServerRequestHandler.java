@@ -1,10 +1,9 @@
 package com.ymatou.doorgod.apigateway.verticle;
 
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.UriCustomizeOptionsCache;
-import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.config.BizConfig;
 import com.ymatou.doorgod.apigateway.filter.FiltersExecutor;
+import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.config.BizConfig;
 import com.ymatou.doorgod.apigateway.filter.HystrixFiltersExecutorCommand;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;

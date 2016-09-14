@@ -2,10 +2,6 @@ package com.ymatou.doorgod.apigateway.filter;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.verticle.HttpServerRequestHandler;
-import com.ymatou.doorgod.apigateway.verticle.HttpServerVerticle;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

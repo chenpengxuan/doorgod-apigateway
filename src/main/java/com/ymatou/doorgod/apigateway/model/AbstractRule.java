@@ -3,9 +3,7 @@ package com.ymatou.doorgod.apigateway.model;
 import org.springframework.core.Ordered;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**

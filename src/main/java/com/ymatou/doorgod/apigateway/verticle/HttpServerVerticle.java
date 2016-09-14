@@ -3,7 +3,6 @@ package com.ymatou.doorgod.apigateway.verticle;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
-import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.*;
 import org.slf4j.Logger;
