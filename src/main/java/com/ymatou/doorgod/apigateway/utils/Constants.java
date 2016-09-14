@@ -15,4 +15,6 @@ public interface Constants {
     public static final String TOPIC_OFFENDERS_UPDATE_EVENT = "doorgod.updateOffendersEvent";
 
     public static final int MAX_CACHED_URIS = 3000;
+
+    public static final int MAX_OFFENDERS = 10000;
 }

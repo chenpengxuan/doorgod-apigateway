@@ -97,4 +97,8 @@ public class RuleCache implements Cache {
     public Set<BlacklistRule> getBlacklistRules() {
         return blacklistRules;
     }
+
+    public Set<LimitTimesRule> getLimitTimesRules() {
+        return limitTimesRules;
+    }
 }

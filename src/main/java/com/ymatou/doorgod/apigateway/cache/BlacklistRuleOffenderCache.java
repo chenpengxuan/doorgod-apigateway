@@ -1,5 +1,6 @@
 package com.ymatou.doorgod.apigateway.cache;
 
+import com.ymatou.doorgod.apigateway.integration.RedisClient;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ public class BlacklistRuleOffenderCache implements Cache {
     @Autowired
     private RuleCache ruleCache;
 
+    @Autowired
+    private RedisClient redisClient;
+
     /**
      * key: ruleName
      * value: blacklist of the rule
@@ -27,9 +31,10 @@ public class BlacklistRuleOffenderCache implements Cache {
 
     @PostConstruct
     @Override
-    public void reload() {
+    public void reload() throws Exception {
         for (BlacklistRule rule : ruleCache.getBlacklistRules()) {
-
+            Set<Sample> samples = redisClient.getBlacklistRuleOffenders(rule.getName());
+            offenders.put(rule.getName(), samples);
         }
     }
 

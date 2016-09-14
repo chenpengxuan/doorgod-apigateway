@@ -10,7 +10,7 @@ import java.util.TreeMap;
  * 从收到的http请求{@link io.vertx.core.http.HttpServerRequest}中提取的样本
  * Created by tuwenjie on 2016/9/7.
  */
-public class Sample {
+public class Sample extends PrintFriendliness {
 
     public static final String NULL_VALUE_PLACEHOLDER = "NULL_FLAG";
 
@@ -21,7 +21,8 @@ public class Sample {
     public static final String KEY_DEVICE_ID = "deviceId";
 
     //样本值
-    private Map<String, String> dimensionValues = new TreeMap<String, String>( );
+    //<em>明确定义为TreeMap,使得fastjson反序列化时，使用TreeMap,否则会使用默认的HashMap</em>
+    private TreeMap<String, String> dimensionValues = new TreeMap<String, String>( );
 
 
     public void addDimensionValue(String key, String value) {
@@ -32,14 +33,6 @@ public class Sample {
                 dimensionValues.put(key, NULL_VALUE_PLACEHOLDER);
             }
         }
-    }
-
-    public void addIp(HttpServerRequest req ) {
-        dimensionValues.put(KEY_IP, Utils.getOriginalIp(req));
-    }
-
-    public void addUri(HttpServerRequest req) {
-        dimensionValues.put(KEY_URI, req.uri());
     }
 
 
@@ -66,5 +59,13 @@ public class Sample {
         });
 
         return sample;
+    }
+
+    public TreeMap<String, String> getDimensionValues() {
+        return dimensionValues;
+    }
+
+    public void setDimensionValues(TreeMap<String, String> dimensionValues) {
+        this.dimensionValues = dimensionValues;
     }
 }

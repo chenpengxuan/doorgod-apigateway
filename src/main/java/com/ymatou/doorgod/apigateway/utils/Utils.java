@@ -5,7 +5,9 @@ import org.springframework.format.datetime.DateFormatter;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,6 +47,11 @@ public class Utils {
 
     public static String getCurrentTime( ) {
         LocalDateTime dateTime = LocalDateTime.now();
-        return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddhhmmss"));
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    public static Date parseDate( String date ) {
+        LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 }

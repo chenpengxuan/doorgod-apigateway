@@ -3,7 +3,6 @@ package com.ymatou.doorgod.apigateway.filter;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.cache.LimitTimesRuleOffenderCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRuleOffender;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +34,8 @@ public class LimitTimesRulesFilter extends AbstractPreFilter {
             context.ruleName = rule.getName();
             Sample sample = context.sample.narrow(
                     CollectionUtils.isEmpty(rule.getGroupByKeys()) ? rule.getDimensionKeys() : rule.getGroupByKeys());
-            LimitTimesRuleOffender offender = offenderCache.locate(rule.getName(), sample);
-            if ( offender != null && offender.getReleaseTime().compareTo(new Date( )) >= 0 ) {
+            Date releaseDate = offenderCache.locateReleaseDate(rule.getName(), sample);
+            if ( releaseDate != null && releaseDate.compareTo(new Date( )) >= 0 ) {
                 return false;
             }
         }
