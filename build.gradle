@@ -41,7 +41,7 @@ repositories {
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
 	compile 'io.vertx:vertx-web:3.3.3'
-	compile 'com.ymatou.disconf:disconf-client:2.6.35'
+	compile ('com.ymatou.disconf:disconf-client:2.6.35')
 	compile 'org.slf4j:slf4j-api:1.7.21'
 	compile 'ch.qos.logback:logback-classic:1.1.7'
 	compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.5.5'
@@ -52,4 +52,8 @@ dependencies {
 	compile 'io.vertx:vertx-mysql-postgresql-client:3.3.3'
 	compile 'com.google.guava:guava:19.0'
 	testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+configurations {
+	compile.exclude module: 'slf4j-log4j12'
 }

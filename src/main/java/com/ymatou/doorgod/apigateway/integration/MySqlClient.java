@@ -1,11 +1,13 @@
 package com.ymatou.doorgod.apigateway.integration;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.filter.PreFilter;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.model.ScopeEnum;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.utils.Utils;
+import groovy.lang.GroovyClassLoader;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
@@ -15,8 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -35,6 +40,8 @@ public class MySqlClient {
 
     @Autowired
     private Vertx vertx;
+
+    private GroovyClassLoader groovyClassLoader = new GroovyClassLoader(MySqlClient.class.getClassLoader());
 
 
     public Set[] loadAllRules() throws Exception {
@@ -112,6 +119,62 @@ public class MySqlClient {
 
         return result;
     }
+
+
+
+    public List<PreFilter> loadCustomizeFilters() throws Exception {
+        List<PreFilter> result = new ArrayList<PreFilter>( );
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().query("select script from customize_filter where status='ENABLE' ",
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(entries -> {
+
+                                    try {
+
+                                        String script = entries.getString("script");
+                                        Class clazz = groovyClassLoader.parseClass(script);
+                                        PreFilter preFilter = (PreFilter) clazz.newInstance();
+
+                                        result.add(preFilter);
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Exception in loding customize filters from mysql", e);
+                                        throwableInLoading[0] = e;
+                                        latch.countDown();
+                                    }
+
+                                });
+
+                                latch.countDown();
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                                latch.countDown();
+                            }
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load customize filters", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
 
 
     @PostConstruct

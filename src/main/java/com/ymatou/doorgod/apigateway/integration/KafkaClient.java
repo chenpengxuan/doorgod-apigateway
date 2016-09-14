@@ -5,6 +5,7 @@ import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
 import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.utils.Constants;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,18 @@ public class KafkaClient {
     @Autowired
     private AppConfig appConfig;
 
+    private String localIp;
+
 
 
     @PostConstruct
     public void init (){
+        localIp = Utils.localIp();
+        if ( localIp == null || localIp.equals("127.0.0.1")) {
+            //本地ip将用作groupId, 本地Ip拿不到，拒绝应用启动
+            throw new RuntimeException("Failed to fetch local ip");
+        }
+
         Properties props = new Properties();
         props.put("bootstrap.servers", appConfig.getKafkaUrl());
         props.put("acks", "0");
