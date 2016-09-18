@@ -44,4 +44,9 @@ public class LimitTimesRuleOffenderCache implements Cache {
         Map<Sample, Date> offendersForRule = offenders.get(ruleName);
         return offendersForRule == null ? null : offendersForRule.get(ruleName);
     }
+
+    public void reload( String ruleName ) throws Exception {
+        Map<Sample, Date> result = redisClient.getLimitTimesRuleOffenders(ruleName);
+        offenders.put(ruleName, result);
+    }
 }

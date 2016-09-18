@@ -28,6 +28,8 @@ public class MySqlClientTest extends BaseTest {
         mySqlClient.loadAllRules();
         mySqlClient.loadCustomizeFilters();
 
+        System.out.println( mySqlClient.loadHystrixConfigs());
+
     }
 
 

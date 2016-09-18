@@ -42,4 +42,9 @@ public class BlacklistRuleOffenderCache implements Cache {
         Set<Sample> offendersForRule = offenders.get(ruleName);
         return offendersForRule == null ? false : offendersForRule.contains(sample);
     }
+
+    public void reload( String ruleName ) throws Exception {
+        Set<Sample> samples = redisClient.getBlacklistRuleOffenders(ruleName);
+        offenders.put(ruleName, samples);
+    }
 }

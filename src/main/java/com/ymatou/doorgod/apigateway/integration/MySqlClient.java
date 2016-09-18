@@ -2,6 +2,7 @@ package com.ymatou.doorgod.apigateway.integration;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.filter.PreFilter;
+import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.model.ScopeEnum;
 import com.ymatou.doorgod.apigateway.utils.Constants;
@@ -176,6 +177,66 @@ public class MySqlClient {
     }
 
 
+    public List<HystrixConfig> loadHystrixConfigs() throws Exception {
+        List<HystrixConfig> result = new ArrayList<HystrixConfig>( );
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().query("select max_concurrent_reqs, timeout,circuit_breaker_force_open, circuit_breaker_force_close, circuit_breaker_error_threshold, uri, fallback_status_code, fallback_body from hystrix_config where status='ENABLE' ",
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(entries -> {
+
+                                    try {
+                                        HystrixConfig config = new HystrixConfig();
+                                        config.setUri(entries.getString("uri"));
+                                        config.setErrorThresholdPercentageOfCircuitBreaker(entries.getInteger("circuit_breaker_error_threshold", HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
+                                        config.setFallbackBody(entries.getString("fallback_body"));
+                                        config.setFallbackStatusCode(entries.getInteger("fallback_status_code", -1));
+                                        config.setForceCircuitBreakerClose(convertBool(entries.getInteger("circuit_breaker_force_close")));
+                                        config.setForceCircuitBreakerOpen(convertBool(entries.getInteger("circuit_breaker_force_open")));
+                                        config.setMaxConcurrentReqs(entries.getInteger("max_concurrent_reqs", -1));
+                                        config.setTimeout(entries.getInteger("timeout", -1));
+
+
+                                        result.add(config);
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Exception in loding hystrix config from mysql", e);
+                                        throwableInLoading[0] = e;
+                                        latch.countDown();
+                                    }
+
+                                });
+
+                                latch.countDown();
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                                latch.countDown();
+                            }
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load hystrix config", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
+
 
     @PostConstruct
     public void init() {
@@ -192,5 +253,9 @@ public class MySqlClient {
     @PreDestroy
     public void destroy() {
         client.close();
+    }
+
+    private boolean convertBool( Integer value ) {
+        return value != null && value > 0;
     }
 }

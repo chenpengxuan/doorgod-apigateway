@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
+import com.ymatou.doorgod.apigateway.model.AbstractRule;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.utils.Constants;
@@ -11,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +29,9 @@ public class RuleCache implements Cache {
 
     private Set<LimitTimesRule> limitTimesRules = new TreeSet<LimitTimesRule>();
 
+    //ruleName -> rule
+    private Map<String, AbstractRule> nameToRules = new HashMap<String, AbstractRule>( );
+
 
     private Set<String> allDimensionKeys = new HashSet<String>( );
 
@@ -44,6 +46,7 @@ public class RuleCache implements Cache {
         blacklistRules = result[0];
         limitTimesRules = result[1];
         fillDimensionKeys();
+        buildNameToRules( );
 
         if (uriToBlacklistRulesCache == null) {
             uriToBlacklistRulesCache = CacheBuilder.newBuilder()
@@ -100,5 +103,14 @@ public class RuleCache implements Cache {
 
     public Set<LimitTimesRule> getLimitTimesRules() {
         return limitTimesRules;
+    }
+
+    private void buildNameToRules( ) {
+        blacklistRules.stream().forEach(rule -> nameToRules.put(rule.getName(), rule));
+        limitTimesRules.stream().forEach(rule -> nameToRules.put(rule.getName(), rule));
+    }
+
+    public AbstractRule locate( String ruleName ) {
+        return nameToRules.get(ruleName);
     }
 }

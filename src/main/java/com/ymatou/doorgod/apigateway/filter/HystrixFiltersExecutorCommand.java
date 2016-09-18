@@ -1,6 +1,8 @@
 package com.ymatou.doorgod.apigateway.filter;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
@@ -20,7 +22,11 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
     private FiltersExecutor filtersExecutor;
 
     public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq ) {
-        super(HystrixCommandGroupKey.Factory.asKey(FiltersExecutor.class.getSimpleName()));
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("filterExecutor"))
+            .andCommandKey(HystrixCommandKey.Factory.asKey("filterExecutor"))
+            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+                .withCircuitBreakerEnabled(false)
+                .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)));
         this.filtersExecutor = filtersExecutor;
         this.httpServerReq = httpServerReq;
     }
