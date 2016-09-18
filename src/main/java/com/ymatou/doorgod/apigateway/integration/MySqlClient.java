@@ -2,11 +2,8 @@ package com.ymatou.doorgod.apigateway.integration;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.filter.PreFilter;
-import com.ymatou.doorgod.apigateway.model.HystrixConfig;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
-import com.ymatou.doorgod.apigateway.model.ScopeEnum;
+import com.ymatou.doorgod.apigateway.model.*;
 import com.ymatou.doorgod.apigateway.utils.Constants;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import groovy.lang.GroovyClassLoader;
 import io.vertx.core.Vertx;
@@ -231,6 +228,60 @@ public class MySqlClient {
 
         if (throwableInLoading[0] != null ) {
             throw new Exception( "Failed to load hystrix config", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
+
+    public List<KeyAlias> loadKeyAliases() throws Exception {
+        List<KeyAlias> result = new ArrayList<KeyAlias>( );
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().query("select origin_key_name, alias, uri from uri_key_alias where status='ENABLE' ",
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(entries -> {
+
+                                    try {
+                                        KeyAlias alias = new KeyAlias();
+                                        alias.setUri(entries.getString("uri"));
+                                        alias.setKey(entries.getString("origin_key_name"));
+                                        alias.setAlias(entries.getString("alias"));
+
+                                        result.add(alias);
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Exception in loding key aliases from mysql", e);
+                                        throwableInLoading[0] = e;
+                                        latch.countDown();
+                                    }
+
+                                });
+
+                                latch.countDown();
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                                latch.countDown();
+                            }
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load key aliases", throwableInLoading[0]);
         }
 
         return result;

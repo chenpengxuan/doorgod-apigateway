@@ -1,8 +1,11 @@
 package com.ymatou.doorgod.apigateway.filter;
 
+import com.ymatou.doorgod.apigateway.cache.KeyAliasCache;
+import com.ymatou.doorgod.apigateway.model.KeyAlias;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -12,6 +15,9 @@ import java.util.Set;
  */
 @Component
 public class DimensionKeyValueFetcher {
+
+    @Autowired
+    private KeyAliasCache keyAliasCache;
 
     public static String KEY_NAME_IP = "ip";
 
@@ -25,6 +31,13 @@ public class DimensionKeyValueFetcher {
         } else if (KEY_NAME_URI.equals(KEY_NAME_URI)) {
             return httpReq.uri();
         } else {
+
+            String alias = keyAliasCache.getAlias(httpReq.uri(), key);
+
+            if (alias != null ) {
+                key = alias;
+            }
+
             String value = httpReq.getParam(key);
             if ( value == null ) {
                 value = httpReq.headers().get(key);
