@@ -42,5 +42,10 @@
                 <ref bean="propertiesDisconf"/>
             </list>
         </property>
+        <property name="locations">
+            <list>
+                <value>classpath:mysql.properties</value>
+            </list>
+        </property>
     </bean>
 </beans>
