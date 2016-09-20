@@ -18,13 +18,9 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
      */
     private int order;
 
-    /**
-     * 使用范围
-     */
-    private ScopeEnum scope;
 
     /**
-     * 适用的uri列表。<code>scope</code>为{@link ScopeEnum#SPECIFIC_URIS}时有效
+     * 适用的uri列表。
      */
     private Set<String> applicableUris = new HashSet<String>( );
 
@@ -43,14 +39,6 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
 
     public void setOrder(int order) {
         this.order = order;
-    }
-
-    public ScopeEnum getScope() {
-        return scope;
-    }
-
-    public void setScope(ScopeEnum scope) {
-        this.scope = scope;
     }
 
     public Set<String> getApplicableUris() {

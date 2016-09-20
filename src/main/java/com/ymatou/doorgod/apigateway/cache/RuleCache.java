@@ -71,8 +71,8 @@ public class RuleCache implements Cache {
                                 }
                             });
         }
-        uriToBlacklistRulesCache.cleanUp();
-        uriToLimitTimesRulesCache.cleanUp();
+        uriToBlacklistRulesCache.invalidateAll();
+        uriToLimitTimesRulesCache.invalidateAll();
     }
 
     public Set<LimitTimesRule> applicableLimitTimesRules( String uri ) {

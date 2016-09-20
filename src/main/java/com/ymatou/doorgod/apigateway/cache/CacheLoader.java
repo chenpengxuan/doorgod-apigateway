@@ -25,10 +25,11 @@ public class CacheLoader implements KafkaRecordListener {
     @Autowired
     private BlacklistRuleOffenderCache blacklistRuleOffenderCache;
 
+
     @Override
     public boolean onRecordReceived(ConsumerRecord<String, String> record) throws Exception {
         switch (record.topic()) {
-            case Constants.TOPIC_OFFENDERS_UPDATE_EVENT:
+            case Constants.TOPIC_UPDATE_OFFENDERS_EVENT:
                 UpdateOffendersEvent event = JSON.parseObject(record.value(), UpdateOffendersEvent.class);
                 if ( ruleCache.locate(event.getRuleName()) instanceof LimitTimesRule ) {
                     limitTimesRuleOffenderCache.reload(event.getRuleName());
@@ -36,7 +37,9 @@ public class CacheLoader implements KafkaRecordListener {
                     blacklistRuleOffenderCache.reload(event.getRuleName());
                 }
                 break;
-
+            case Constants.TOPIC_UPDATE_RULES_EVENT:
+                ruleCache.reload();
+                break;
             default:
         }
 

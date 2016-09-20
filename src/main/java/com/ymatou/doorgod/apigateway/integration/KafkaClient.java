@@ -31,6 +31,8 @@ public class KafkaClient {
 
     //TODO：发消息，单独线程池?
 
+    //TODO: consumer more consideration
+
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
     private Producer<String, String> producer;
@@ -72,7 +74,8 @@ public class KafkaClient {
         consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         consumer = new KafkaConsumer<>(consumerProps);
 
-        consumer.subscribe(Arrays.asList(Constants.TOPIC_OFFENDERS_UPDATE_EVENT));
+        consumer.subscribe(Arrays.asList(Constants.TOPIC_UPDATE_OFFENDERS_EVENT,
+                Constants.TOPIC_UPDATE_RULES_EVENT ));
 
         Thread thread = new Thread(()->{
 

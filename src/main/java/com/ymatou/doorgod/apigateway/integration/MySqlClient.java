@@ -48,7 +48,7 @@ public class MySqlClient {
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
             if (connEvent.succeeded()) {
-                connEvent.result().query("select name, statistic_span, times_cap,rejection_span, scope, `keys`, groupby_keys, rule_type, `order`, uris from rule where status='ENABLE' ",
+                connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris from rule where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
                                 queryEvent.result().getRows().stream().forEach(entries -> {
@@ -64,14 +64,12 @@ public class MySqlClient {
                                             rule.setTimesCap(entries.getLong("times_cap"));
                                             rule.setName(entries.getString("name"));
                                             rule.setOrder(entries.getInteger("order"));
-                                            rule.setScope(ScopeEnum.valueOf(entries.getString("scope")));
                                             rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
                                             limitTimesRules.add(rule);
 
                                         } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
 
                                             BlacklistRule rule = new BlacklistRule();
-                                            rule.setScope(ScopeEnum.valueOf(entries.getString("scope")));
                                             rule.setOrder(entries.getInteger("order"));
                                             rule.setName(entries.getString("name"));
                                             rule.setDimensionKeys(Utils.splitByComma(entries.getString("keys")));
