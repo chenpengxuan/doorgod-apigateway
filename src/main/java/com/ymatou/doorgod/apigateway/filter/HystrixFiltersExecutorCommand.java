@@ -22,8 +22,8 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
     private FiltersExecutor filtersExecutor;
 
     public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq ) {
-        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("filterExecutor"))
-            .andCommandKey(HystrixCommandKey.Factory.asKey("filterExecutor"))
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("filtersExecutor"))
+            .andCommandKey(HystrixCommandKey.Factory.asKey("filtersExecutor"))
             .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                 .withCircuitBreakerEnabled(false)
                 .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)));

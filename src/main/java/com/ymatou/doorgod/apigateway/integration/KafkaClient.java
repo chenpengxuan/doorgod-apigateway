@@ -29,6 +29,8 @@ import java.util.Properties;
 @Component
 public class KafkaClient {
 
+    //TODO：发消息，单独线程池?
+
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
     private Producer<String, String> producer;
@@ -54,10 +56,11 @@ public class KafkaClient {
         Properties props = new Properties();
         props.put("bootstrap.servers", appConfig.getKafkaUrl());
         props.put("acks", "0");
+        props.put("client.id", localIp);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        Producer<String, String> producer = new KafkaProducer<>(props);
+        producer = new KafkaProducer<>(props);
 
 
         Properties consumerProps = new Properties();
@@ -98,7 +101,6 @@ public class KafkaClient {
                 consumer.close();
             }
         } );
-        thread.setDaemon(true);
         thread.setName("kafka-consumer-thread");
 
         thread.start();

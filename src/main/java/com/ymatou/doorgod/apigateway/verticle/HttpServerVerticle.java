@@ -41,6 +41,8 @@ public class HttpServerVerticle extends AbstractVerticle {
             final Throwable[] throwableInWarmupTargetServer = {null};
             CountDownLatch latch = new CountDownLatch(appConfig.getInitHttpConnections());
             for ( int i=0; i<appConfig.getInitHttpConnections(); i++) {
+
+                //TODO: targetServer/port 通过数据库配置. 一个实例一个<targetServer, port>
                 client.get(bizConfig.getTargetWebServerPort(), bizConfig.getTargetWebServerHost(),
                         appConfig.getTargetServerWarmupUri().trim(),
                         targetResp -> {

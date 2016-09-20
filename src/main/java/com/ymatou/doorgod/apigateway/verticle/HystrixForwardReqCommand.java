@@ -20,7 +20,7 @@ import rx.Subscriber;
  */
 public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpServerVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
     private HttpServerRequest httpServerReq;
 
@@ -30,9 +30,9 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     public HystrixForwardReqCommand(HttpClient httpClient, HttpServerRequest httpServerReq,
                                     Vertx vertx) {
-        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(httpServerReq.uri()))
-            .andCommandKey(HystrixCommandKey.Factory.asKey(httpServerReq.uri()))
-                .andCommandPropertiesDefaults(buildCommandPropertiesSetter(httpServerReq.uri()))
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(httpServerReq.path()))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(httpServerReq.path()))
+                .andCommandPropertiesDefaults(buildCommandPropertiesSetter(httpServerReq.path()))
             );
         this.httpClient = httpClient;
         this.httpServerReq = httpServerReq;
@@ -50,7 +50,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
+                    LOGGER.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
                     subscriber.onError(e);
                 }
             }
@@ -63,26 +63,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
                 try {
+                    //TODO:对于CircuitBreaker不是配置为强制断开的命令，LOGGER.error()
+                    LOGGER.warn("Circuit Breaker open for uri", httpServerReq.path());
                     if (!subscriber.isUnsubscribed()) {
-                        HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
-
-                        HystrixConfig config = configCache.locate(httpServerReq.uri());
-
-                        if (config != null && config.getFallbackStatusCode() != null
-                                && config.getFallbackStatusCode() > 0 ) {
-                            httpServerReq.response().setStatusCode(config.getFallbackStatusCode());
-                            if ( config.getFallbackBody() != null ) {
-                                httpServerReq.response().end(config.getFallbackBody());
-                            } else {
-                                httpServerReq.response().end();
-                            }
-                        } else {
-                            httpServerReq.response().setStatusCode(403);
-                            httpServerReq.response().end("ApiGateway: request is forbidden");
-                        }
+                        HttpServerRequestHandler.fallback(httpServerReq, "Refused by Circuit Breaker");
+                        subscriber.onCompleted();
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
+                    LOGGER.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
                     subscriber.onError(e);
                 }
             }
@@ -115,9 +103,6 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             }
             if (config.getErrorThresholdPercentageOfCircuitBreaker() != null && config.getErrorThresholdPercentageOfCircuitBreaker() > 0 ) {
                 setter.withCircuitBreakerErrorThresholdPercentage(config.getErrorThresholdPercentageOfCircuitBreaker());
-            }
-            if (config.getFallbackStatusCode() == null || config.getFallbackStatusCode() <= 0) {
-                setter.withFallbackEnabled(false);
             }
             if (config.getTimeout() != null && config.getTimeout() > 0 ) {
                 setter.withExecutionTimeoutEnabled(true);

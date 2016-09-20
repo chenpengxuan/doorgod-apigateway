@@ -25,7 +25,7 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
 
     @Override
     protected boolean passable(HttpServerRequest req, FilterContext context) {
-        Set<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.uri());
+        Set<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.path());
 
         for ( BlacklistRule rule : rules ) {
             context.ruleName = rule.getName();

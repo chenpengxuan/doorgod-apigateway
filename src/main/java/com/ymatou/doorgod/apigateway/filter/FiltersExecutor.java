@@ -1,6 +1,5 @@
 package com.ymatou.doorgod.apigateway.filter;
 
-import com.ymatou.doorgod.apigateway.cache.CustomizeDimensionKeyValueFetcherCache;
 import com.ymatou.doorgod.apigateway.cache.CustomizeFilterCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
@@ -33,7 +32,7 @@ public class FiltersExecutor {
     private RuleCache ruleCache;
 
     @Autowired
-    private CustomizeDimensionKeyValueFetcherCache customizeDimensionKeyValueFetcherCache;
+    private DimensionKeyValueFetcher dimensionKeyValueFetcher;
 
     @Autowired
     private KafkaClient kafkaClient;
@@ -47,7 +46,7 @@ public class FiltersExecutor {
         try {
             FilterContext context = new FilterContext();
             Set<String> dimensionKeys = ruleCache.getAllDimensionKeys();
-            sample = customizeDimensionKeyValueFetcherCache.getFetcher().fetch(dimensionKeys, httpReq);
+            sample = dimensionKeyValueFetcher.fetch(dimensionKeys, httpReq);
 
             context.sample = sample;
 
@@ -71,7 +70,7 @@ public class FiltersExecutor {
             }
 
         } catch ( Exception e ) {
-            LOGGER.error("Exception in doing filter for http request:{}", httpReq.uri(), e );
+            LOGGER.error("Exception in doing filter for http request:{}", httpReq.path(), e );
             result = true;
         }
 
