@@ -15,21 +15,24 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource("classpath:spring/spring-extra-beans.xml")
 public class ApigatewayApplication {
 
-	public static void main(String[] args) {
 
-		//指示vertx使用logback记日志
-		System.setProperty("vertx.logger-delegate-factory-class-name",
-				io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
-		ConfigurableApplicationContext springContext = SpringApplication.run(ApigatewayApplication.class, args);
+    public static void main(String[] args) {
 
-		Vertx vertx = springContext.getBean(Vertx.class);
+        //指示vertx使用logback记日志
+        System.setProperty("vertx.logger-delegate-factory-class-name",
+                io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
+        ConfigurableApplicationContext springContext = SpringApplication.run(ApigatewayApplication.class, args);
 
-		deployVerticles( vertx );
-	}
 
-	private static void deployVerticles( Vertx vertx ) {
-		vertx.deployVerticle(HttpServerVerticle.class.getName(),
-				new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE));
-	}
+        Vertx vertx = springContext.getBean(Vertx.class);
+
+        deployVerticles(vertx);
+
+    }
+
+    private static void deployVerticles(Vertx vertx) {
+        vertx.deployVerticle(HttpServerVerticle.class.getName(),
+                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE));
+    }
 
 }

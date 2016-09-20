@@ -7,5 +7,5 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
  */
 public interface KafkaRecordListener {
 
-    boolean onRecordReceived( ConsumerRecord<String, String> record );
+    boolean onRecordReceived( ConsumerRecord<String, String> record ) throws Exception ;
 }

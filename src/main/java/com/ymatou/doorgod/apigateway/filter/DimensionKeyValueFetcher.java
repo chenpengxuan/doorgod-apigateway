@@ -1,9 +1,8 @@
 package com.ymatou.doorgod.apigateway.filter;
 
 import com.ymatou.doorgod.apigateway.cache.KeyAliasCache;
-import com.ymatou.doorgod.apigateway.model.KeyAlias;
-import com.ymatou.doorgod.apigateway.utils.Utils;
 import com.ymatou.doorgod.apigateway.model.Sample;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

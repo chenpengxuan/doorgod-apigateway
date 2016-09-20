@@ -43,6 +43,9 @@ public class AppConfig {
     @Value("${mySqlDbName}")
     private String mySqlDbName;
 
+    @Value("${enableHystrix}")
+    private boolean enableHystrix;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -129,6 +132,14 @@ public class AppConfig {
 
     public void setInitHttpConnections(int initHttpConnections) {
         this.initHttpConnections = initHttpConnections;
+    }
+
+    public boolean isEnableHystrix() {
+        return enableHystrix;
+    }
+
+    public void setEnableHystrix(boolean enableHystrix) {
+        this.enableHystrix = enableHystrix;
     }
 }
 

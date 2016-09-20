@@ -1,9 +1,9 @@
 package com.ymatou.doorgod.apigateway.verticle;
 
-import com.ymatou.doorgod.apigateway.cache.UriCustomizeOptionsCache;
-import com.ymatou.doorgod.apigateway.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
+import com.ymatou.doorgod.apigateway.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.filter.HystrixFiltersExecutorCommand;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -50,9 +50,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         FiltersExecutor filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
 
-        BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
+        AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
 
-        if (bizConfig.isEnableHystrix()) {
+        if (appConfig.isEnableHystrix()) {
             HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
             filtersExecutorCommand.toObservable().subscribe(passed -> {
                 process(httpServerReq, passed);
@@ -70,7 +70,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             httpServerReq.response().end("ApiGateway: request is forbidden.");
         } else {
             BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
-            UriCustomizeOptionsCache uriCustomizeOptionsCache = SpringContextHolder.getBean(UriCustomizeOptionsCache.class);
             HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), bizConfig.getTargetWebServerPort(), bizConfig.getTargetWebServerHost(),
                     httpServerReq.uri(),
                     targetResp -> {
@@ -100,10 +99,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
 
             forwardClientReq.setChunked(true);
-            int timeout = uriCustomizeOptionsCache.getTimeout(httpServerReq.uri());
-            if (timeout > 0) {
-                forwardClientReq.setTimeout(timeout);
-            }
             forwardClientReq.headers().setAll(httpServerReq.headers());
             httpServerReq.handler(data -> {
                 forwardClientReq.write(data);

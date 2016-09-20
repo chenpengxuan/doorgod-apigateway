@@ -4,7 +4,9 @@ import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -65,7 +67,7 @@ public class HttpServerVerticle extends AbstractVerticle {
         }
 
 
-        if (bizConfig.isEnableHystrix()) {
+        if (appConfig.isEnableHystrix()) {
             server.requestHandler(httpServerReq -> {
                 HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(client, httpServerReq, vertx);
                 cmd.observe();

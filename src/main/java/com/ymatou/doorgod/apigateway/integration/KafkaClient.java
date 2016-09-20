@@ -16,12 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -43,8 +42,6 @@ public class KafkaClient {
 
     @Autowired
     private KafkaRecordListener kafkaRecordListener;
-
-
 
     @PostConstruct
     public void init (){
@@ -75,20 +72,30 @@ public class KafkaClient {
         consumer.subscribe(Arrays.asList(Constants.TOPIC_OFFENDERS_UPDATE_EVENT));
 
         Thread thread = new Thread(()->{
-            while (true) {
-                ConsumerRecords<String, String> records = consumer.poll(1000);
 
-                for (TopicPartition partition : records.partitions()) {
-                    List<ConsumerRecord<String, String>> partitionRecords = records.records(partition);
+            try {
+                while (true) {
+                    ConsumerRecords<String, String> records = consumer.poll(1000);
 
-                    //收到一个Partition的多个record，只处理最一个record。避免重复刷新同一缓存
-                    kafkaRecordListener.onRecordReceived( partitionRecords.get(partitionRecords.size() - 1));
-                    long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
-                    consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)),
-                            (offsets, exception) -> {
-                                LOGGER.error("Failed to commit kafaka offsets", exception);
-                            });
+                    for (TopicPartition partition : records.partitions()) {
+                        List<ConsumerRecord<String, String>> partitionRecords = records.records(partition);
+
+                        //收到一个Partition的多个record，只处理最后一个record。
+                        //这样，多个相同的缓存刷新命令汇总为一个执行
+                        try {
+                            kafkaRecordListener.onRecordReceived(partitionRecords.get(partitionRecords.size() - 1));
+                            long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
+                            consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)),
+                                    (offsets, exception) -> {
+                                        LOGGER.error("Failed to commit kafaka offsets", exception);
+                                    });
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to consume:" + partitionRecords.get(partitionRecords.size() - 1), e);
+                        }
+                    }
                 }
+            } finally {
+                consumer.close();
             }
         } );
         thread.setDaemon(true);

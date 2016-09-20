@@ -57,10 +57,42 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
         } );
     }
 
+    @Override
+    protected Observable<Void> resumeWithFallback() {
+        return Observable.create(new Observable.OnSubscribe<Void>() {
+            @Override
+            public void call(Subscriber<? super Void> subscriber) {
+                try {
+                    if (!subscriber.isUnsubscribed()) {
+                        HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
+
+                        HystrixConfig config = configCache.locate(httpServerReq.uri());
+
+                        if (config != null && config.getFallbackStatusCode() != null
+                                && config.getFallbackStatusCode() > 0 ) {
+                            httpServerReq.response().setStatusCode(config.getFallbackStatusCode());
+                            if ( config.getFallbackBody() != null ) {
+                                httpServerReq.response().end(config.getFallbackBody());
+                            } else {
+                                httpServerReq.response().end();
+                            }
+                        } else {
+                            httpServerReq.response().setStatusCode(403);
+                            httpServerReq.response().end("ApiGateway: request is forbidden");
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
+                    subscriber.onError(e);
+                }
+            }
+        } );
+    }
+
     private static HystrixCommandProperties.Setter buildCommandPropertiesSetter(String uri ) {
+        //TODO: 验证是否动态生效
         HystrixCommandProperties.Setter setter = HystrixCommandProperties.Setter();
 
-        //timout统一在vert.x http client中设置
         setter.withExecutionTimeoutEnabled(false);
 
         setter.withRequestLogEnabled(false);
@@ -86,6 +118,10 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             }
             if (config.getFallbackStatusCode() == null || config.getFallbackStatusCode() <= 0) {
                 setter.withFallbackEnabled(false);
+            }
+            if (config.getTimeout() != null && config.getTimeout() > 0 ) {
+                setter.withExecutionTimeoutEnabled(true);
+                setter.withExecutionTimeoutInMilliseconds(config.getTimeout( ));
             }
         }
 

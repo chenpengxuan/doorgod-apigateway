@@ -4,9 +4,9 @@ import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**

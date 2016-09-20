@@ -1,8 +1,5 @@
 package com.ymatou.doorgod.apigateway.model;
 
-import com.ymatou.doorgod.apigateway.utils.Utils;
-import io.vertx.core.http.HttpServerRequest;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
