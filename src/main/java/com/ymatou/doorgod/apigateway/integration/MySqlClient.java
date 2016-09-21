@@ -76,6 +76,8 @@ public class MySqlClient {
                                             rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
                                             blacklistRules.add(rule);
 
+                                        } else {
+                                            LOGGER.error("Unknown rule type {} in mysql rule tables", entries.getString("rule_type"));
                                         }
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding rules from mysql", e);

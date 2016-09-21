@@ -83,14 +83,14 @@ public class RuleCache implements Cache {
         return uriToBlacklistRulesCache.getUnchecked(uri);
     }
 
-    private Set<String> fillDimensionKeys( ) {
+    private void fillDimensionKeys( ) {
         Set<String> result = limitTimesRules.stream().map(limitTimesRule -> limitTimesRule.getDimensionKeys())
                 .flatMap(strings -> strings.stream()).collect(Collectors.toSet());
         result.addAll(
                 blacklistRules.stream().map(blacklistRules -> blacklistRules.getDimensionKeys())
                         .flatMap(strings -> strings.stream()).collect(Collectors.toSet())
         );
-        return result;
+        allDimensionKeys = result;
     }
 
     public Set<String> getAllDimensionKeys() {
