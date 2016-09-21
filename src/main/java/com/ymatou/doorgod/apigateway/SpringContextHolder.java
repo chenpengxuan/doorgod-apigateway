@@ -13,13 +13,15 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 /**
  * @author luoshiqian 2016/5/11 15:50
  */
-@Service
+@Service("springContextHolder")
 @Lazy(false)
+@Order(Integer.MIN_VALUE)
 public class SpringContextHolder implements ApplicationContextAware, DisposableBean {
 
     private static ApplicationContext applicationContext = null;

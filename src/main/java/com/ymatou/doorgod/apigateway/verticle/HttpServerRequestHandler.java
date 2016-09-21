@@ -37,6 +37,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerReq) {
+        LOGGER.debug("Recv:{}", httpServerReq.path());
         if (httpServerReq.path().equals("/warmup")) {
             httpServerReq.response().end("ok");
             return;

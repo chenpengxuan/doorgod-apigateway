@@ -35,7 +35,7 @@ public class LimitTimesRulesFilter extends AbstractPreFilter {
             }
         }
 
-        return false;
+        return true;
     }
 
     @Override

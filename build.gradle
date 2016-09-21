@@ -41,7 +41,7 @@ repositories {
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
 	compile 'io.vertx:vertx-web:3.3.3'
-	compile ('com.ymatou.disconf:disconf-client:2.6.35')
+	compile 'com.ymatou.disconf:disconf-client:2.6.35'
 	compile 'org.slf4j:slf4j-api:1.7.21'
 	compile 'ch.qos.logback:logback-classic:1.1.7'
 	compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.5.5'
@@ -51,6 +51,9 @@ dependencies {
 	compile 'com.alibaba:fastjson:1.2.17'
 	compile 'io.vertx:vertx-mysql-postgresql-client:3.3.3'
 	compile 'com.google.guava:guava:19.0'
+	compile ('com.ymatou.errorreporter:errorreporter-logback:1.0.1') {
+		exclude group: 'io.netty'
+	}
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
@@ -73,8 +76,7 @@ task copyJars(type: Copy,dependsOn:jar) {
 
 //复制配置
 task copyConfig(type: Copy){
-	from "$projectDir/src/main/resources/db.properties"
-	from "$projectDir/src/main/resources/disconf.properties"
+	from "$projectDir/src/main/resources/"
 	into "$buildDir/dist/conf"
 }
 

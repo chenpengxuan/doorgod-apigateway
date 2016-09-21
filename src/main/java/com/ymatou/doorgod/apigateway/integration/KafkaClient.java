@@ -88,15 +88,19 @@ public class KafkaClient {
 
                         //收到一个Partition的多个record，只处理最后一个record。
                         //这样，多个相同的缓存刷新命令汇总为一个执行
+                        ConsumerRecord<String, String> record = partitionRecords.get(partitionRecords.size() - 1);
                         try {
-                            kafkaRecordListener.onRecordReceived(partitionRecords.get(partitionRecords.size() - 1));
+
+                            LOGGER.info("Recv kafka message. Topic:{}, Value:{}", record.topic(), record.value());
+
+                            kafkaRecordListener.onRecordReceived( record );
                             long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
                             consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)),
                                     (offsets, exception) -> {
                                         LOGGER.error("Failed to commit kafaka offsets", exception);
                                     });
                         } catch (Exception e) {
-                            LOGGER.error("Failed to consume:" + partitionRecords.get(partitionRecords.size() - 1), e);
+                            LOGGER.error("Failed to consume kafka message:{}", record, e);
                         }
                     }
                 }
