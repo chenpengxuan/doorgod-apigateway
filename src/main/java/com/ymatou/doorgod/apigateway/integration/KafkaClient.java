@@ -74,8 +74,10 @@ public class KafkaClient {
         consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         consumer = new KafkaConsumer<>(consumerProps);
 
-        consumer.subscribe(Arrays.asList(Constants.TOPIC_UPDATE_OFFENDERS_EVENT,
-                Constants.TOPIC_UPDATE_RULES_EVENT ));
+        consumer.subscribe(Arrays.asList(Constants.TOPIC_UPDATE_OFFENDER_EVENT,
+                Constants.TOPIC_UPDATE_RULE_EVENT,
+                Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT,
+                Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT));
 
         Thread thread = new Thread(()->{
 

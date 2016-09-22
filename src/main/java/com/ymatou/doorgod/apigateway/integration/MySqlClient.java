@@ -17,10 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -41,9 +38,8 @@ public class MySqlClient {
     private GroovyClassLoader groovyClassLoader = new GroovyClassLoader(MySqlClient.class.getClassLoader());
 
 
-    public Set[] loadAllRules() throws Exception {
-        Set<BlacklistRule> blacklistRules = new TreeSet<BlacklistRule>();
-        Set<LimitTimesRule> limitTimesRules = new TreeSet<LimitTimesRule>();
+    public Set<AbstractRule> loadAllRules() throws Exception {
+        Set<AbstractRule> result = new HashSet<AbstractRule>();
         CountDownLatch latch = new CountDownLatch(1);
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
@@ -65,7 +61,7 @@ public class MySqlClient {
                                             rule.setName(entries.getString("name"));
                                             rule.setOrder(entries.getInteger("order"));
                                             rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
-                                            limitTimesRules.add(rule);
+                                            result.add(rule);
 
                                         } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
 
@@ -74,7 +70,7 @@ public class MySqlClient {
                                             rule.setName(entries.getString("name"));
                                             rule.setDimensionKeys(Utils.splitByComma(entries.getString("keys")));
                                             rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
-                                            blacklistRules.add(rule);
+                                            result.add(rule);
 
                                         } else {
                                             LOGGER.error("Unknown rule type {} in mysql rule tables", entries.getString("rule_type"));
@@ -82,17 +78,14 @@ public class MySqlClient {
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding rules from mysql", e);
                                         throwableInLoading[0] = e;
-                                        latch.countDown();
                                     }
 
                                 });
 
-                                latch.countDown();
-
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
-                                latch.countDown();
                             }
+                            latch.countDown();
                         });
             } else {
                 throwableInLoading[0] = connEvent.cause();
@@ -109,10 +102,6 @@ public class MySqlClient {
         if (throwableInLoading[0] != null ) {
             throw new Exception( "Failed to load rules", throwableInLoading[0]);
         }
-
-        Set[] result = new TreeSet[2];
-        result[0] = blacklistRules;
-        result[1] = limitTimesRules;
 
         return result;
     }
@@ -141,17 +130,14 @@ public class MySqlClient {
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding customize filters from mysql", e);
                                         throwableInLoading[0] = e;
-                                        latch.countDown();
                                     }
 
                                 });
 
-                                latch.countDown();
-
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
-                                latch.countDown();
                             }
+                            latch.countDown();
                         });
             } else {
                 throwableInLoading[0] = connEvent.cause();
@@ -201,17 +187,14 @@ public class MySqlClient {
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding hystrix config from mysql", e);
                                         throwableInLoading[0] = e;
-                                        latch.countDown();
                                     }
 
                                 });
 
-                                latch.countDown();
-
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
-                                latch.countDown();
                             }
+                            latch.countDown();
                         });
             } else {
                 throwableInLoading[0] = connEvent.cause();
@@ -233,8 +216,8 @@ public class MySqlClient {
     }
 
 
-    public TreeSet<KeyAlias> loadKeyAliases() throws Exception {
-        TreeSet<KeyAlias> result = new TreeSet<KeyAlias>( );
+    public Set<KeyAlias> loadKeyAliases() throws Exception {
+        Set<KeyAlias> result = new HashSet<KeyAlias>( );
         CountDownLatch latch = new CountDownLatch(1);
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
@@ -255,17 +238,14 @@ public class MySqlClient {
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding key aliases from mysql", e);
                                         throwableInLoading[0] = e;
-                                        latch.countDown();
                                     }
 
                                 });
 
-                                latch.countDown();
-
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
-                                latch.countDown();
                             }
+                            latch.countDown();
                         });
             } else {
                 throwableInLoading[0] = connEvent.cause();

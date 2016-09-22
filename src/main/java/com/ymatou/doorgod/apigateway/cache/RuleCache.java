@@ -3,6 +3,7 @@ package com.ymatou.doorgod.apigateway.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.escape.ArrayBasedCharEscaper;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.AbstractRule;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
@@ -25,9 +26,9 @@ public class RuleCache implements Cache {
     private MySqlClient mySqlClient;
 
 
-    private Set<BlacklistRule> blacklistRules = new TreeSet<BlacklistRule>();
+    private List<BlacklistRule> blacklistRules = new ArrayList<BlacklistRule>();
 
-    private Set<LimitTimesRule> limitTimesRules = new TreeSet<LimitTimesRule>();
+    private List<LimitTimesRule> limitTimesRules = new ArrayList<LimitTimesRule>();
 
     //ruleName -> rule
     private Map<String, AbstractRule> nameToRules = new HashMap<String, AbstractRule>( );
@@ -36,26 +37,32 @@ public class RuleCache implements Cache {
     private Set<String> allDimensionKeys = new HashSet<String>( );
 
     //基于uri的缓存, key: uri
-    private LoadingCache<String, Set<BlacklistRule>> uriToBlacklistRulesCache;
-    private LoadingCache<String, Set<LimitTimesRule>> uriToLimitTimesRulesCache;
+    private LoadingCache<String, List<BlacklistRule>> uriToBlacklistRulesCache;
+    private LoadingCache<String, List<LimitTimesRule>> uriToLimitTimesRulesCache;
 
     @PostConstruct
     @Override
     public void reload() throws Exception {
-        Set[] result = mySqlClient.loadAllRules();
-        blacklistRules = result[0];
-        limitTimesRules = result[1];
+
+        Set<AbstractRule> result = mySqlClient.loadAllRules();
+
+        result.stream().filter(rule-> rule instanceof BlacklistRule).sorted().forEach(
+                rule -> blacklistRules.add((BlacklistRule)rule));
+        result.stream().filter(rule-> rule instanceof LimitTimesRule).sorted().forEach(
+                rule -> limitTimesRules.add((LimitTimesRule)rule));
+
         fillDimensionKeys();
+
         buildNameToRules( );
 
         if (uriToBlacklistRulesCache == null) {
             uriToBlacklistRulesCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, Set<BlacklistRule>>() {
-                                public Set<BlacklistRule> load(String uri) {
-                                    return blacklistRules.stream().filter(blacklistRule -> blacklistRule.applicable(uri))
-                                            .collect(Collectors.toCollection(TreeSet::new));
+                            new CacheLoader<String, List<BlacklistRule>>() {
+                                public List<BlacklistRule> load(String uri) {
+                                    return blacklistRules.stream().filter(rule -> rule.applicable(uri))
+                                            .collect(Collectors.toList());
                                 }
                             });
         }
@@ -64,10 +71,10 @@ public class RuleCache implements Cache {
             uriToLimitTimesRulesCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, Set<LimitTimesRule>>() {
-                                public Set<LimitTimesRule> load(String uri) {
-                                    return limitTimesRules.stream().filter(blacklistRule -> blacklistRule.applicable(uri))
-                                            .collect(Collectors.toCollection(TreeSet::new));
+                            new CacheLoader<String, List<LimitTimesRule>>() {
+                                public List<LimitTimesRule> load(String uri) {
+                                    return limitTimesRules.stream().filter(rule -> rule.applicable(uri))
+                                            .collect(Collectors.toList());
                                 }
                             });
         }
@@ -75,11 +82,11 @@ public class RuleCache implements Cache {
         uriToLimitTimesRulesCache.invalidateAll();
     }
 
-    public Set<LimitTimesRule> applicableLimitTimesRules( String uri ) {
+    public List<LimitTimesRule> applicableLimitTimesRules( String uri ) {
         return uriToLimitTimesRulesCache.getUnchecked(uri);
     }
 
-    public Set<BlacklistRule> applicableBlacklistRules( String uri ) {
+    public List<BlacklistRule> applicableBlacklistRules( String uri ) {
         return uriToBlacklistRulesCache.getUnchecked(uri);
     }
 
@@ -97,11 +104,11 @@ public class RuleCache implements Cache {
         return allDimensionKeys;
     }
 
-    public Set<BlacklistRule> getBlacklistRules() {
+    public List<BlacklistRule> getBlacklistRules() {
         return blacklistRules;
     }
 
-    public Set<LimitTimesRule> getLimitTimesRules() {
+    public List<LimitTimesRule> getLimitTimesRules() {
         return limitTimesRules;
     }
 

@@ -18,7 +18,7 @@ public class HystrixConfigCache implements Cache {
     @Autowired
     private MySqlClient mySqlClient;
 
-    private Map<String, HystrixConfig> urlToConfigs = new HashMap<String, HystrixConfig>();
+    private Map<String, HystrixConfig> uriToConfigs = new HashMap<String, HystrixConfig>();
 
 
     @Override
@@ -32,11 +32,11 @@ public class HystrixConfigCache implements Cache {
             urlToConfigs.put(config.getUri(), config);
         }
 
-        this.urlToConfigs = urlToConfigs;
+        this.uriToConfigs = urlToConfigs;
 
     }
 
     public HystrixConfig locate( String uri ) {
-        return urlToConfigs.get(uri);
+        return uriToConfigs.get(uri);
     }
 }

@@ -7,6 +7,7 @@ import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
 
     @Override
     protected boolean passable(HttpServerRequest req, FilterContext context) {
-        Set<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.path());
+        List<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.path());
 
         for ( BlacklistRule rule : rules ) {
             context.ruleName = rule.getName();

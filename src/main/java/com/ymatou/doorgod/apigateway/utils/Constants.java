@@ -12,9 +12,13 @@ public interface Constants {
 
     public static final String TOPIC_STATISTIC_SAMPLE_EVENT = "doorgod.statisticSampleEvent";
 
-    public static final String TOPIC_UPDATE_OFFENDERS_EVENT = "doorgod.updateOffendersEvent";
+    public static final String TOPIC_UPDATE_OFFENDER_EVENT = "doorgod.updateOffenderEvent";
 
-    public static final String TOPIC_UPDATE_RULES_EVENT = "doorgod.updateRulesEvent";
+    public static final String TOPIC_UPDATE_RULE_EVENT = "doorgod.updateRuleEvent";
+
+    public static final String TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT = "doorgod.updateHystrixConfigEvent";
+
+    public static final String TOPIC_UPDATE_KEY_ALIAS_EVENT = "doorgod.updateKeyAliasEvent";
 
     public static final String COLLECTION_LIMIT_TIMES_RULE_OFFENDER = "LimitTimesRuleOffender";
 

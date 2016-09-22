@@ -3,7 +3,7 @@ package com.ymatou.doorgod.apigateway.cache;
 /**
  * Created by tuwenjie on 2016/9/18.
  */
-public class UpdateRulesEvent {
+public class UpdateOffenderEvent {
     private String ruleName;
 
     public String getRuleName() {

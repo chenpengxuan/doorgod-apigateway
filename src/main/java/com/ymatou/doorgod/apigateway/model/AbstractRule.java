@@ -51,7 +51,7 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
 
     @Override
     public int compareTo(AbstractRule o) {
-        return order - o.getOrder();
+        return order - o.order;
     }
 
     @Override

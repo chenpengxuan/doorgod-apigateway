@@ -42,7 +42,7 @@ public class LimitTimesRuleOffenderCache implements Cache {
 
     public Date locateReleaseDate( String ruleName, Sample sample ) {
         Map<Sample, Date> offendersForRule = offenders.get(ruleName);
-        return offendersForRule == null ? null : offendersForRule.get(ruleName);
+        return offendersForRule == null ? null : offendersForRule.get(sample);
     }
 
     public void reload( String ruleName ) throws Exception {

@@ -20,7 +20,7 @@ public class KeyAliasCache implements Cache {
     @Autowired
     private MySqlClient mySqlClient;
 
-    private TreeSet<KeyAlias> aliases = new TreeSet<KeyAlias>( );
+    private Set<KeyAlias> aliases = new HashSet<KeyAlias>( );
 
     /**
      * Key:uri
@@ -40,13 +40,15 @@ public class KeyAliasCache implements Cache {
                             new com.google.common.cache.CacheLoader<String, Map<String, String>>() {
                                 public Map<String, String> load(String uri) {
                                     Map<String, String> result = new HashMap<String, String>( );
-                                    for ( KeyAlias keyAlias : aliases) {
+
+                                    //uri长的优先匹配
+                                    aliases.stream().sorted().forEach(keyAlias -> {
                                         if ( keyAlias.applicable(uri)) {
                                             if ( !result.containsKey(keyAlias.getKey())) {
                                                 result.put(keyAlias.getKey(), keyAlias.getAlias());
                                             }
                                         }
-                                    }
+                                    });
                                     return result;
                                 }
                             });
