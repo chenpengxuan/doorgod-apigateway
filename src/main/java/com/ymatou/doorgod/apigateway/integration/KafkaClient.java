@@ -97,10 +97,13 @@ public class KafkaClient {
                             long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
                             consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)),
                                     (offsets, exception) -> {
-                                        LOGGER.error("Failed to commit kafaka offsets", exception);
+                                        if ( exception != null ) {
+                                            LOGGER.error("Failed to commit kafaka offsets", exception);
+                                        }
                                     });
                         } catch (Exception e) {
                             LOGGER.error("Failed to consume kafka message:{}", record, e);
+                            continue;
                         }
                     }
                 }

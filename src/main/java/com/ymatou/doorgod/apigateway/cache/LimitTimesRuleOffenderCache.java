@@ -1,6 +1,6 @@
 package com.ymatou.doorgod.apigateway.cache;
 
-import com.ymatou.doorgod.apigateway.integration.RedisClient;
+import com.ymatou.doorgod.apigateway.integration.MongodbClient;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ public class LimitTimesRuleOffenderCache implements Cache {
     private RuleCache ruleCache;
 
     @Autowired
-    private RedisClient redisClient;
+    private MongodbClient mongodbClient;
 
     /**
      * key: ruleName
@@ -35,7 +35,7 @@ public class LimitTimesRuleOffenderCache implements Cache {
     @Override
     public void reload() throws Exception {
         for (LimitTimesRule rule : ruleCache.getLimitTimesRules()) {
-            Map<Sample, Date> result = redisClient.getLimitTimesRuleOffenders(rule.getName());
+            Map<Sample, Date> result = mongodbClient.loadLimitTimesRuleOffenders(rule.getName());
             offenders.put(rule.getName(), result);
         }
     }
@@ -46,7 +46,7 @@ public class LimitTimesRuleOffenderCache implements Cache {
     }
 
     public void reload( String ruleName ) throws Exception {
-        Map<Sample, Date> result = redisClient.getLimitTimesRuleOffenders(ruleName);
+        Map<Sample, Date> result = mongodbClient.loadLimitTimesRuleOffenders(ruleName);
         offenders.put(ruleName, result);
     }
 }

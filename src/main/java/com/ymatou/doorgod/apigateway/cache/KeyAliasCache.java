@@ -1,13 +1,15 @@
 package com.ymatou.doorgod.apigateway.cache;
 
+import com.google.common.cache.*;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
+import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.KeyAlias;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by tuwenjie on 2016/9/18.
@@ -18,32 +20,43 @@ public class KeyAliasCache implements Cache {
     @Autowired
     private MySqlClient mySqlClient;
 
+    private TreeSet<KeyAlias> aliases = new TreeSet<KeyAlias>( );
+
     /**
      * Key:uri
      * value
      *      key: originalKeyName
      *      value: alias
      */
-    private Map<String, Map<String, String>> aliases = new HashMap<>( );
+    private LoadingCache<String, Map<String, String>> uriToAliases;
 
     @Override
     public void reload() throws Exception {
-        List<KeyAlias> loadeds =  mySqlClient.loadKeyAliases();
-        Map<String, Map<String, String>> result = new HashMap<>( );
-
-        for (KeyAlias alias : loadeds ) {
-            if ( result.get(alias.getUri()) == null ) {
-                result.put(alias.getUri(), new HashMap<String, String>( ));
-            }
-            result.get(alias.getUri()).put(alias.getKey(), alias.getAlias());
+        aliases =  mySqlClient.loadKeyAliases();
+        if (uriToAliases == null) {
+            uriToAliases = CacheBuilder.newBuilder()
+                    .maximumSize(Constants.MAX_CACHED_URIS)
+                    .build(
+                            new com.google.common.cache.CacheLoader<String, Map<String, String>>() {
+                                public Map<String, String> load(String uri) {
+                                    Map<String, String> result = new HashMap<String, String>( );
+                                    for ( KeyAlias keyAlias : aliases) {
+                                        if ( keyAlias.applicable(uri)) {
+                                            if ( !result.containsKey(keyAlias.getKey())) {
+                                                result.put(keyAlias.getKey(), keyAlias.getAlias());
+                                            }
+                                        }
+                                    }
+                                    return result;
+                                }
+                            });
         }
 
-        aliases = result;
+        uriToAliases.invalidateAll();
     }
 
     public String getAlias( String uri, String key ) {
-        Map<String, String> value = aliases.get(uri);
-        return value == null ? null : value.get(key);
+        return uriToAliases.getUnchecked(uri).get(key);
     }
 
 }

@@ -40,13 +40,13 @@ repositories {
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
-	compile 'io.vertx:vertx-web:3.3.3'
+	compile 'io.vertx:vertx-core:3.3.3'
+	compile 'io.vertx:vertx-mongo-client:3.3.3'
 	compile 'com.ymatou.disconf:disconf-client:2.6.35'
 	compile 'org.slf4j:slf4j-api:1.7.21'
 	compile 'ch.qos.logback:logback-classic:1.1.7'
 	compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.5.5'
 	compile 'org.codehaus.groovy:groovy-all:2.4.7'
-	compile 'biz.paluch.redis:lettuce:4.2.2.Final'
 	compile 'org.apache.kafka:kafka_2.11:0.10.0.1'
 	compile 'com.alibaba:fastjson:1.2.17'
 	compile 'io.vertx:vertx-mysql-postgresql-client:3.3.3'

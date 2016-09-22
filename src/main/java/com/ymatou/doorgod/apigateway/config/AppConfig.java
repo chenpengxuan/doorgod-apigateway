@@ -46,6 +46,12 @@ public class AppConfig {
     @Value("${enableHystrix}")
     private boolean enableHystrix;
 
+    @Value("${mongodbName}")
+    private String mongodbName;
+
+    @Value("${mongodbUrl}")
+    private String mongodbUrl;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -140,6 +146,22 @@ public class AppConfig {
 
     public void setEnableHystrix(boolean enableHystrix) {
         this.enableHystrix = enableHystrix;
+    }
+
+    public String getMongodbName() {
+        return mongodbName;
+    }
+
+    public void setMongodbName(String mongodbName) {
+        this.mongodbName = mongodbName;
+    }
+
+    public String getMongodbUrl() {
+        return mongodbUrl;
+    }
+
+    public void setMongodbUrl(String mongodbUrl) {
+        this.mongodbUrl = mongodbUrl;
     }
 }
 

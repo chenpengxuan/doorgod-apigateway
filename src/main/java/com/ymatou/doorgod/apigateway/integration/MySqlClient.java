@@ -233,8 +233,8 @@ public class MySqlClient {
     }
 
 
-    public List<KeyAlias> loadKeyAliases() throws Exception {
-        List<KeyAlias> result = new ArrayList<KeyAlias>( );
+    public TreeSet<KeyAlias> loadKeyAliases() throws Exception {
+        TreeSet<KeyAlias> result = new TreeSet<KeyAlias>( );
         CountDownLatch latch = new CountDownLatch(1);
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {

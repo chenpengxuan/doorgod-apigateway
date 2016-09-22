@@ -16,6 +16,10 @@ public interface Constants {
 
     public static final String TOPIC_UPDATE_RULES_EVENT = "doorgod.updateRulesEvent";
 
+    public static final String COLLECTION_LIMIT_TIMES_RULE_OFFENDER = "LimitTimesRuleOffender";
+
+    public static final String COLLECTION_BLACLIST_RULE_OFFENDER = "BlacklistRuleOffender";
+
     public static final int MAX_CACHED_URIS = 3000;
 
     public static final int MAX_OFFENDERS = 10000;
