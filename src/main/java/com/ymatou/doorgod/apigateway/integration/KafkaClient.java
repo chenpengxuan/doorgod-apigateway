@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by tuwenjie on 2016/9/9.
@@ -27,13 +29,14 @@ import java.util.*;
 @Component
 public class KafkaClient {
 
-    //TODO：发消息，单独线程池?
 
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
     private Producer<String, String> producer;
 
     private Consumer<String, String> consumer;
+
+    private ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
 
     @Autowired
     private AppConfig appConfig;
@@ -134,20 +137,24 @@ public class KafkaClient {
     }
 
     public void sendStatisticItem(StatisticItem item) {
-        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_STATISTIC_SAMPLE_EVENT, JSON.toJSONString(item));
-        producer.send(record, (metadata, exception) -> {
-            if (exception != null) {
-                LOGGER.error("Failed to send statistic item to Kafka", exception);
-            }
-        });
+        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_STATISTIC_SAMPLE_EVENT,
+                JSON.toJSONString(item));
+        send( record );
     }
 
     public void sendRejectReqEvent(RejectReqEvent event) {
-        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT, JSON.toJSONString(event));
-        producer.send(record, (metadata, exception) -> {
-            if (exception != null) {
-                LOGGER.error("Failed to send reject req event to Kafka", exception);
-            }
+        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT,
+                JSON.toJSONString(event));
+        send( record );
+    }
+
+    private void send( ProducerRecord<String, String> record ) {
+        producerExecutor.submit(() -> {
+            producer.send(record, (metadata, exception) -> {
+                if (exception != null) {
+                    LOGGER.error("Failed to send Kafka message:{}", record);
+                }
+            });
         });
     }
 }
