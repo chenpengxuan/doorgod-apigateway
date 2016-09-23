@@ -2,7 +2,6 @@ package com.ymatou.doorgod.apigateway.test;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.verticle.HttpServerRequestHandler;
 import org.junit.Test;
 import rx.Observable;
 import rx.Subscriber;

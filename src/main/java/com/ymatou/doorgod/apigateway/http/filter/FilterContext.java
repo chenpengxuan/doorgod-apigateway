@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.filter;
+package com.ymatou.doorgod.apigateway.http.filter;
 
 import com.ymatou.doorgod.apigateway.model.Sample;
 

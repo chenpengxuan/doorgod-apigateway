@@ -1,9 +1,10 @@
-package com.ymatou.doorgod.apigateway.filter;
+package com.ymatou.doorgod.apigateway.http.filter;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +23,8 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
     private FiltersExecutor filtersExecutor;
 
     public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq ) {
-        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("filtersExecutor"))
-            .andCommandKey(HystrixCommandKey.Factory.asKey("filtersExecutor"))
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
+            .andCommandKey(HystrixCommandKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
             .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                 .withCircuitBreakerEnabled(false)
                 .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)));

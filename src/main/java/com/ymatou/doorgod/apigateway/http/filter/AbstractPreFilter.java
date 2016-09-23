@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.filter;
+package com.ymatou.doorgod.apigateway.http.filter;
 
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
 import com.ymatou.doorgod.apigateway.model.RejectReqEvent;

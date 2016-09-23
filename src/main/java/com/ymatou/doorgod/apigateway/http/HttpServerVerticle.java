@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.verticle;
+package com.ymatou.doorgod.apigateway.http;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;

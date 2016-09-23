@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.filter;
+package com.ymatou.doorgod.apigateway.http.filter;
 
 import com.ymatou.doorgod.apigateway.cache.BlacklistRuleOffenderCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
@@ -8,8 +8,6 @@ import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
-
-import java.util.Set;
 
 /**
  * 执行黑名单规则的Filter

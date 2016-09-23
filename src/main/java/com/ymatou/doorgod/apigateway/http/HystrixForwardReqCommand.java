@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.verticle;
+package com.ymatou.doorgod.apigateway.http;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;

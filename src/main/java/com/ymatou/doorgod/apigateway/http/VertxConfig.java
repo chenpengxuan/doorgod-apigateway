@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.verticle;
+package com.ymatou.doorgod.apigateway.http;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;

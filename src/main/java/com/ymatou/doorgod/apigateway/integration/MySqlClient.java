@@ -1,7 +1,7 @@
 package com.ymatou.doorgod.apigateway.integration;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.filter.PreFilter;
+import com.ymatou.doorgod.apigateway.http.filter.PreFilter;
 import com.ymatou.doorgod.apigateway.model.*;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
