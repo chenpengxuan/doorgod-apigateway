@@ -102,7 +102,7 @@ public class KafkaClient {
                                             partitionRecords.get(partitionRecords.size() - 1).offset() + 1)),
                                     (offsets, exception) -> {
                                         if (exception != null) {
-                                            LOGGER.error("Failed to commit kafaka offsets", exception);
+                                            LOGGER.error("Failed to commit kafaka offsets:{}", offsets, exception);
                                         }
                                     });
                         } catch (Exception e) {
