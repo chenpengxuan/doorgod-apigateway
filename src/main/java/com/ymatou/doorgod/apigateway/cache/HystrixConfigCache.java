@@ -26,13 +26,13 @@ public class HystrixConfigCache implements Cache {
 
         List<HystrixConfig> configs = mySqlClient.loadHystrixConfigs();
 
-        Map<String, HystrixConfig> urlToConfigs = new HashMap<String, HystrixConfig>();
+        Map<String, HystrixConfig> uriToConfigs = new HashMap<String, HystrixConfig>();
 
         for ( HystrixConfig config : configs ) {
-            urlToConfigs.put(config.getUri(), config);
+            uriToConfigs.put(config.getUri(), config);
         }
 
-        this.uriToConfigs = urlToConfigs;
+        this.uriToConfigs = uriToConfigs;
 
     }
 

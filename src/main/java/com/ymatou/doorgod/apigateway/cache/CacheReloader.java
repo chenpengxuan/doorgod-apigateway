@@ -39,26 +39,30 @@ public class CacheReloader implements KafkaRecordListener {
 
 
     @Override
-    public boolean onRecordReceived(ConsumerRecord<String, String> record) throws Exception {
-        switch (record.topic()) {
-            case Constants.TOPIC_UPDATE_OFFENDER_EVENT:
-                UpdateOffenderEvent event = JSON.parseObject(record.value(), UpdateOffenderEvent.class);
-                reloadOffenderCache(event.getRuleName());
-                break;
-            case Constants.TOPIC_UPDATE_RULE_EVENT:
-                ruleCache.reload();
-                break;
-            case Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT:
-                keyAliasCache.reload();
-                break;
-            case Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT:
-                hystrixConfigCache.reload();
-                break;
-            default:
-                LOGGER.error("Receive unknow kafka message:{}", record);
-        }
+    public void onRecordReceived(ConsumerRecord<String, String> record) throws Exception {
 
-        return true;
+        try {
+            switch (record.topic()) {
+                case Constants.TOPIC_UPDATE_OFFENDER_EVENT:
+                    UpdateOffenderEvent event = JSON.parseObject(record.value(), UpdateOffenderEvent.class);
+                    reloadOffenderCache(event.getRuleName());
+                    break;
+                case Constants.TOPIC_UPDATE_RULE_EVENT:
+                    ruleCache.reload();
+                    break;
+                case Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT:
+                    keyAliasCache.reload();
+                    break;
+                case Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT:
+                    hystrixConfigCache.reload();
+                    break;
+                default:
+                    LOGGER.error("Receive unknow kafka message:{}", record);
+            }
+        } catch ( Exception e ) {
+            LOGGER.error("Failed to ");
+            throw e;
+        }
     }
 
     private void reloadOffenderCache(  String ruleName ) throws Exception {

@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.WakeupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by tuwenjie on 2016/9/9.
@@ -30,8 +28,6 @@ import java.util.Properties;
 public class KafkaClient {
 
     //TODO：发消息，单独线程池?
-
-    //TODO: consumer more consideration
 
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
@@ -48,15 +44,17 @@ public class KafkaClient {
     private KafkaRecordListener kafkaRecordListener;
 
     @PostConstruct
-    public void init (){
+    public void init() {
         localIp = Utils.localIp();
-        if ( localIp == null || localIp.equals("127.0.0.1")) {
+        if (localIp == null || localIp.equals("127.0.0.1")) {
             //本地ip将用作groupId, 本地Ip拿不到，拒绝应用启动
             throw new RuntimeException("Failed to fetch local ip");
         }
 
         Properties props = new Properties();
         props.put("bootstrap.servers", appConfig.getKafkaUrl());
+
+        //无需关心消息是否真正送达
         props.put("acks", "0");
         props.put("client.id", localIp);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -69,7 +67,10 @@ public class KafkaClient {
         consumerProps.put("bootstrap.servers", appConfig.getKafkaUrl());
         consumerProps.put("group.id", localIp);
         consumerProps.put("client.id", localIp);
+
+        //手动确认消息是否消费成功，确保没有消息被漏消费
         consumerProps.put("enable.auto.commit", "false");
+
         consumerProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         consumerProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         consumer = new KafkaConsumer<>(consumerProps);
@@ -79,40 +80,45 @@ public class KafkaClient {
                 Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT,
                 Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT));
 
-        Thread thread = new Thread(()->{
-
+        Thread thread = new Thread(() -> {
             try {
                 while (true) {
                     ConsumerRecords<String, String> records = consumer.poll(1000);
 
                     for (TopicPartition partition : records.partitions()) {
+
                         List<ConsumerRecord<String, String>> partitionRecords = records.records(partition);
 
-                        //收到一个Partition的多个record，只处理最后一个record。
-                        //这样，多个相同的缓存刷新命令汇总为一个执行
-                        ConsumerRecord<String, String> record = partitionRecords.get(partitionRecords.size() - 1);
                         try {
+                            for (ConsumerRecord<String, String> record : partitionRecords) {
+                                kafkaRecordListener.onRecordReceived(record);
+                            }
 
-                            LOGGER.info("Recv kafka message. Topic:{}, Value:{}", record.topic(), record.value());
-
-                            kafkaRecordListener.onRecordReceived( record );
-                            long lastOffset = partitionRecords.get(partitionRecords.size() - 1).offset();
-                            consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(lastOffset + 1)),
+                            /**
+                             * 手动向Kafka确认那些消息已被成功消费。确保没有消息被漏消费。
+                             * 存在消息被重复消费的case。例如<code>kafkaRecordListener.onRecordReceived()</code>消费失败，抛异常。
+                             */
+                            consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(
+                                            partitionRecords.get(partitionRecords.size() - 1).offset() + 1)),
                                     (offsets, exception) -> {
-                                        if ( exception != null ) {
+                                        if (exception != null) {
                                             LOGGER.error("Failed to commit kafaka offsets", exception);
                                         }
                                     });
                         } catch (Exception e) {
-                            LOGGER.error("Failed to consume kafka message:{}", record, e);
-                            continue;
+                            //一个Partition消费异常，继续去消费别的Partition
+                            LOGGER.error("Failed to consume kafka message", e);
                         }
                     }
                 }
+            } catch (WakeupException we) {
+                //just ignore shutdown exception
+            } catch (Exception e) {
+                LOGGER.error("Failed to poll kafka message.", e);
             } finally {
                 consumer.close();
             }
-        } );
+        });
         thread.setName("kafka-consumer-thread");
 
         thread.start();
@@ -121,25 +127,25 @@ public class KafkaClient {
 
 
     @PreDestroy
-    public void destroy( ) {
+    public void destroy() {
         producer.close();
         consumer.wakeup();
         consumer.close();
     }
 
-    public void sendStatisticItem(StatisticItem item ) {
+    public void sendStatisticItem(StatisticItem item) {
         ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_STATISTIC_SAMPLE_EVENT, JSON.toJSONString(item));
         producer.send(record, (metadata, exception) -> {
-            if (exception != null ) {
+            if (exception != null) {
                 LOGGER.error("Failed to send statistic item to Kafka", exception);
             }
         });
     }
 
-    public void sendRejectReqEvent(RejectReqEvent event ) {
+    public void sendRejectReqEvent(RejectReqEvent event) {
         ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT, JSON.toJSONString(event));
         producer.send(record, (metadata, exception) -> {
-            if (exception != null ) {
+            if (exception != null) {
                 LOGGER.error("Failed to send reject req event to Kafka", exception);
             }
         });
