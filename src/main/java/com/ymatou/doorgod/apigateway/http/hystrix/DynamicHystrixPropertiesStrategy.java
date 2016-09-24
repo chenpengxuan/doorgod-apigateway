@@ -1,23 +1,21 @@
-package com.ymatou.doorgod.apigateway.http;
+package com.ymatou.doorgod.apigateway.http.hystrix;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.strategy.HystrixPlugins;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesCommandDefault;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.Cache;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 /**
  * Hystrix动态配置实现
@@ -30,8 +28,12 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
     private HystrixConfigCache hystrixConfigCache;
 
 
-    private LoadingCache<String, HystrixCommandProperties> commandKeyToProperties;
+    private LoadingCache<HystrixCommandKey, HystrixCommandProperties> commandKeyToProperties;
 
+    @PostConstruct
+    public void init( ) {
+        HystrixPlugins.getInstance().registerPropertiesStrategy(this);
+    }
 
 
     @Override
@@ -52,7 +54,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         }
     }
 
-    public HystrixCommandProperties.Setter build(HystrixConfig config ) {
+    public static HystrixCommandProperties.Setter build(HystrixConfig config ) {
         HystrixCommandProperties.Setter setter = HystrixCommandProperties.Setter();
 
         setter.withExecutionTimeoutEnabled(false);
@@ -89,9 +91,10 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
             commandKeyToProperties = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, HystrixCommandProperties>() {
-                                public HystrixCommandProperties load(String uri) {
-                                    return null;
+                            new CacheLoader<HystrixCommandKey, HystrixCommandProperties>() {
+                                public HystrixCommandProperties load(HystrixCommandKey key ) {
+                                    HystrixConfig config = hystrixConfigCache.locate(key.name());
+                                    return new HystrixPropertiesCommandDefault(key, build(config));
                                 }
                             });
         }

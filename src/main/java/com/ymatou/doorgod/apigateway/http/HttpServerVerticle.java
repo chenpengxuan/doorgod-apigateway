@@ -3,6 +3,7 @@ package com.ymatou.doorgod.apigateway.http;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
+import com.ymatou.doorgod.apigateway.http.hystrix.HystrixForwardReqCommand;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
