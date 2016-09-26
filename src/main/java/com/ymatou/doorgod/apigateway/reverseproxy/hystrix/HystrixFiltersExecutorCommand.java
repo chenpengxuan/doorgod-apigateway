@@ -1,10 +1,10 @@
-package com.ymatou.doorgod.apigateway.http.hystrix;
+package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.http.filter.FiltersExecutor;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
@@ -13,6 +13,7 @@ import rx.Observable;
 import rx.Subscriber;
 
 /**
+ * 用Hystrix上报/监控ApiGateway自身{@link FiltersExecutor}的性能
  * Created by tuwenjie on 2016/9/6.
  */
 public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Boolean> {
@@ -24,10 +25,12 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
     private FiltersExecutor filtersExecutor;
 
     public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq ) {
-        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("ApiGateway"))
             .andCommandKey(HystrixCommandKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
             .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+                //filters自身永不被Hystrix熔断
                 .withCircuitBreakerEnabled(false)
+                .withExecutionTimeoutEnabled(false)
                 .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)));
         this.filtersExecutor = filtersExecutor;
         this.httpServerReq = httpServerReq;
@@ -45,7 +48,7 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {
-                    logger.error("Failed to execute filters for http req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
+                    logger.error("Failed to execute filters for reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
                     subscriber.onError(e);
                 }
             }

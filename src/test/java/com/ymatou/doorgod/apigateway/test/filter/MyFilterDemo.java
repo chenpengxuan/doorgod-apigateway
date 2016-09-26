@@ -1,7 +1,7 @@
 package com.ymatou.doorgod.apigateway.test.filter;
 
-import com.ymatou.doorgod.apigateway.http.filter.AbstractPreFilter;
-import com.ymatou.doorgod.apigateway.http.filter.FilterContext;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.AbstractPreFilter;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FilterContext;
 import io.vertx.core.http.HttpServerRequest;
 
 /**

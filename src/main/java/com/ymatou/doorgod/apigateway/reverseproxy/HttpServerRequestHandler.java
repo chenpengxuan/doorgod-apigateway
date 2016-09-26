@@ -1,11 +1,11 @@
-package com.ymatou.doorgod.apigateway.http;
+package com.ymatou.doorgod.apigateway.reverseproxy;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
-import com.ymatou.doorgod.apigateway.http.filter.FiltersExecutor;
-import com.ymatou.doorgod.apigateway.http.hystrix.HystrixFiltersExecutorCommand;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
+import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import rx.Subscriber;
 
 /**
+ * 反向代理的核心逻辑
  * Created by tuwenjie on 2016/9/6.
  */
 public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
@@ -37,7 +38,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerReq) {
-        LOGGER.debug("Recv:{}", httpServerReq.path());
+        LOGGER.debug("Recv:{}, by handler:{}", httpServerReq.path(), this);
         if (httpServerReq.path().equals("/warmup")) {
             httpServerReq.response().end("ok");
             return;
@@ -51,13 +52,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             return;
         }
 
+        //其他uri, 反向代理
         FiltersExecutor filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
 
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
 
         if (appConfig.isEnableHystrix()) {
 
-            //通过Hystrix监控FiltersExecutor性能及Gateway接收的所有请求
+            //通过Hystrix监控FiltersExecutor性能及TPS等
             boolean[] passFilters = new boolean[]{false};
             HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
             filtersExecutorCommand.toObservable().subscribe(passed -> {
@@ -75,13 +77,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     private void  process( HttpServerRequest httpServerReq, boolean passed ) {
         if (!passed) {
             fallback(httpServerReq, "Refused by filters");
-            if (subscriber != null ) {
-                subscriber.onCompleted();
-            }
+            onCompleted();
         } else {
             BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
-            HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), bizConfig.getTargetWebServerPort(), bizConfig.getTargetWebServerHost(),
-                    httpServerReq.path(),
+
+            //TODO: target loaded from DB
+            HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), bizConfig.getTargetWebServerPort(),
+                    bizConfig.getTargetWebServerHost(),
+                    httpServerReq.uri(),
                     targetResp -> {
                         httpServerReq.response().setChunked(true);
                         httpServerReq.response().setStatusCode(targetResp.statusCode());
@@ -90,20 +93,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                             httpServerReq.response().write(data);
                         });
                         targetResp.exceptionHandler(throwable -> {
-                            LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), httpServerReq.path(), throwable);
+                            LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
                             httpServerReq.response().setStatusCode(500);
-                            httpServerReq.response().write("...ApiGateway: failed to read target service response");
-                            if (subscriber != null) {
-                                subscriber.onError(throwable);
-                            }
+                            httpServerReq.response().end("...ApiGateway: failed to read target service response");
+                            onError( throwable );
                         });
                         targetResp.endHandler((v) -> {
                             httpServerReq.response().end();
-
-                            if (subscriber != null) {
-                                subscriber.onCompleted();
-                            }
-
+                            onCompleted();
                         });
                     });
 
@@ -126,7 +123,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             });
 
             forwardClientReq.exceptionHandler(throwable -> {
-                LOGGER.error("Failed to transfer http req {}:{}", httpServerReq.method(), httpServerReq.path(), throwable);
+                LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
                 if (!httpServerReq.response().ended()) {
                     httpServerReq.response().setChunked(true);
                     if (throwable instanceof java.net.ConnectException) {
@@ -137,13 +134,11 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         httpServerReq.response().write("ApiGateway:target service timeout");
                     } else {
                         httpServerReq.response().setStatusCode(500);
-                        httpServerReq.response().write("ApiGateway:failed to forward request");
+                        httpServerReq.response().write("ApiGateway:Exception in forwarding request");
                     }
                     httpServerReq.response().end();
 
-                    if (subscriber != null) {
-                        subscriber.onError(new Exception(throwable));
-                    }
+                    onError(new Exception(throwable));
                 }
             });
 
@@ -171,6 +166,18 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             httpServerReq.response().end("ApiGateway: request is forbidden." + reason );
         }
 
+    }
+
+    public void onCompleted( ) {
+        if ( subscriber != null ) {
+            subscriber.onCompleted();
+        }
+    }
+
+    public void onError( Throwable t ) {
+        if ( subscriber != null ) {
+            subscriber.onError( t );
+        }
     }
 }
 

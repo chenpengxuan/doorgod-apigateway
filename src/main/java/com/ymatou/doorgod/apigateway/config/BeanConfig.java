@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.http;
+package com.ymatou.doorgod.apigateway.config;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * Created by tuwenjie on 2016/9/13.
  */
 @Configuration
-public class VertxConfig {
+public class BeanConfig {
 
     @Bean
     public Vertx vertx( ) {

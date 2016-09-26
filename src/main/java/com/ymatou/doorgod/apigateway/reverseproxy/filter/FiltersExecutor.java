@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.http.filter;
+package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
 import com.ymatou.doorgod.apigateway.cache.CustomizeFilterCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
@@ -70,7 +70,7 @@ public class FiltersExecutor {
             }
 
         } catch ( Exception e ) {
-            LOGGER.error("Exception in doing filter for http request:{}", httpReq.path(), e );
+            LOGGER.error("Exception in doing filter for reverseproxy request:{}", httpReq.path(), e );
             result = true;
         }
 

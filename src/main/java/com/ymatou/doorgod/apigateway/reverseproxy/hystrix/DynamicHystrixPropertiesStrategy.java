@@ -1,4 +1,4 @@
-package com.ymatou.doorgod.apigateway.http.hystrix;
+package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

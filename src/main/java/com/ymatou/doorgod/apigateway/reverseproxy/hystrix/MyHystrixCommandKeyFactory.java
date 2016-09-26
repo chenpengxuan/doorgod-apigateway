@@ -1,10 +1,9 @@
-package com.ymatou.doorgod.apigateway.http.hystrix;
+package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.hystrix.HystrixCommandKey;
-import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixKey;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 
