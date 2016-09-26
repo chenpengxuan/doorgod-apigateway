@@ -7,6 +7,7 @@ import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import groovy.lang.GroovyClassLoader;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.asyncsql.AsyncSQLClient;
 import io.vertx.ext.asyncsql.MySQLClient;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -257,6 +259,59 @@ public class MySqlClient {
 
         if (throwableInLoading[0] != null ) {
             throw new Exception( "Failed to load key aliases", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
+    public TargetServer locateTargetServer() throws Exception {
+        TargetServer result = new TargetServer();
+        JsonArray params = new JsonArray().add(Utils.localIp());
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().queryWithParams("select target_server, port from target_server where status='ENABLE' and gateway_ip=?",
+                        params,
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(row -> {
+                                    try {
+                                        if ( StringUtils.hasText(row.getString("target_server"))
+                                            && row.getInteger("port", -1) > 0) {
+                                            result.setHost(row.getString("target_server").trim());
+                                            result.setPort(row.getInteger("port"));
+                                        }
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Exception in loading key aliases from mysql", e);
+                                    }
+
+                                });
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                            }
+                            latch.countDown();
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load target server", throwableInLoading[0]);
+        }
+
+        if ( !StringUtils.hasText(result.getHost()) || result.getPort() <= 0){
+            throw new Exception("Target server not set properly for ApiGateway on ip:" + Utils.localIp());
         }
 
         return result;
