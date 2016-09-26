@@ -6,6 +6,7 @@ import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.model.KeyAlias;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
+import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.DynamicHystrixPropertiesStrategy;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public class CacheReloader implements KafkaRecordListener {
     @Autowired
     private KeyAliasCache keyAliasCache;
 
+    @Autowired
+    private DynamicHystrixPropertiesStrategy dynamicHystrixPropertiesStrategy;
+
 
     @Override
     public void onRecordReceived(ConsumerRecord<String, String> record) throws Exception {
@@ -55,12 +59,14 @@ public class CacheReloader implements KafkaRecordListener {
                     break;
                 case Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT:
                     hystrixConfigCache.reload();
+                    dynamicHystrixPropertiesStrategy.reload( );
                     break;
                 default:
                     LOGGER.error("Receive unknow kafka message:{}", record);
             }
         } catch ( Exception e ) {
-            LOGGER.error("Failed to ");
+            //记录下具体消费那条日志失败
+            LOGGER.error("Failed to consume kafka message:{}", record);
             throw e;
         }
     }
@@ -71,7 +77,7 @@ public class CacheReloader implements KafkaRecordListener {
         } else if (ruleCache.locate(ruleName) instanceof BlacklistRule ) {
             blacklistRuleOffenderCache.reload(ruleName);
         } else {
-            LOGGER.error("Unknown rule name:{}", ruleName);
+            LOGGER.error("Unknown rule name in UpdateOffenderEvent from kafka:{}", ruleName);
         }
     }
 }

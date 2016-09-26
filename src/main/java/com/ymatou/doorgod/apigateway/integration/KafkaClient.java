@@ -20,8 +20,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * Created by tuwenjie on 2016/9/9.
@@ -36,7 +35,10 @@ public class KafkaClient {
 
     private Consumer<String, String> consumer;
 
-    private ExecutorService producerExecutor = Executors.newSingleThreadExecutor();
+    //单线程发送Kafka消息
+    private ExecutorService producerExecutor = new ThreadPoolExecutor(1, 1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>(10000));
 
     @Autowired
     private AppConfig appConfig;
@@ -86,7 +88,7 @@ public class KafkaClient {
         Thread thread = new Thread(() -> {
             try {
                 while (true) {
-                    ConsumerRecords<String, String> records = consumer.poll(1000);
+                    ConsumerRecords<String, String> records = consumer.poll(5000);
 
                     for (TopicPartition partition : records.partitions()) {
 
@@ -94,6 +96,8 @@ public class KafkaClient {
 
                         try {
                             for (ConsumerRecord<String, String> record : partitionRecords) {
+                                //都是缓存刷新消息，不频繁。日志输出，便于问题确认/分析
+                                LOGGER.info("Recv kafka message:{}", record);
                                 kafkaRecordListener.onRecordReceived(record);
                             }
 
@@ -149,12 +153,17 @@ public class KafkaClient {
     }
 
     private void send( ProducerRecord<String, String> record ) {
-        producerExecutor.submit(() -> {
-            producer.send(record, (metadata, exception) -> {
-                if (exception != null) {
-                    LOGGER.error("Failed to send Kafka message:{}", record);
-                }
+        try {
+            producerExecutor.submit(() -> {
+                producer.send(record, (metadata, exception) -> {
+                    if (exception != null) {
+                        LOGGER.error("Failed to send Kafka message:{}", record);
+                    }
+                });
             });
-        });
+        } catch (Exception e ) {
+            LOGGER.error("Kafka send message thread pool used up", e );
+        }
+
     }
 }

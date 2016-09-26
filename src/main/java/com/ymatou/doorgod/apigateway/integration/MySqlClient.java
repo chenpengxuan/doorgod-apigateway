@@ -47,37 +47,36 @@ public class MySqlClient {
                 connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris from rule where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
-                                queryEvent.result().getRows().stream().forEach(entries -> {
+                                queryEvent.result().getRows().stream().forEach(row -> {
 
                                     try {
-                                        if (Constants.RULE_TYPE_NAME_LIMIT_TIMES_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
+                                        if (Constants.RULE_TYPE_NAME_LIMIT_TIMES_RULE.equalsIgnoreCase(row.getString("rule_type"))) {
 
                                             LimitTimesRule rule = new LimitTimesRule();
-                                            rule.setDimensionKeys(Utils.splitByComma(entries.getString("keys")));
-                                            rule.setGroupByKeys(Utils.splitByComma(entries.getString("groupby_keys")));
-                                            rule.setRejectionSpan(entries.getInteger("rejection_span"));
-                                            rule.setStatisticSpan(entries.getInteger("statistic_span"));
-                                            rule.setTimesCap(entries.getLong("times_cap"));
-                                            rule.setName(entries.getString("name"));
-                                            rule.setOrder(entries.getInteger("order"));
-                                            rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
+                                            rule.setDimensionKeys(Utils.splitByComma(row.getString("keys")));
+                                            rule.setGroupByKeys(Utils.splitByComma(row.getString("groupby_keys")));
+                                            rule.setRejectionSpan(row.getInteger("rejection_span"));
+                                            rule.setStatisticSpan(row.getInteger("statistic_span"));
+                                            rule.setTimesCap(row.getLong("times_cap"));
+                                            rule.setName(row.getString("name"));
+                                            rule.setOrder(row.getInteger("order"));
+                                            rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
                                             result.add(rule);
 
-                                        } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(entries.getString("rule_type"))) {
+                                        } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(row.getString("rule_type"))) {
 
                                             BlacklistRule rule = new BlacklistRule();
-                                            rule.setOrder(entries.getInteger("order"));
-                                            rule.setName(entries.getString("name"));
-                                            rule.setDimensionKeys(Utils.splitByComma(entries.getString("keys")));
-                                            rule.setApplicableUris(Utils.splitByComma(entries.getString("uris")));
+                                            rule.setOrder(row.getInteger("order"));
+                                            rule.setName(row.getString("name"));
+                                            rule.setDimensionKeys(Utils.splitByComma(row.getString("keys")));
+                                            rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
                                             result.add(rule);
 
                                         } else {
-                                            LOGGER.error("Unknown rule type {} in mysql rule tables", entries.getString("rule_type"));
+                                            LOGGER.error("Unknown rule type {} in mysql rule tables", row.getString("rule_type"));
                                         }
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding rules from mysql", e);
-                                        throwableInLoading[0] = e;
+                                        LOGGER.error("Exception in loding rule from mysql. row:{}", row, e);
                                     }
 
                                 });
@@ -117,11 +116,11 @@ public class MySqlClient {
                 connEvent.result().query("select script from customize_filter where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
-                                queryEvent.result().getRows().stream().forEach(entries -> {
+                                queryEvent.result().getRows().stream().forEach(row -> {
 
                                     try {
 
-                                        String script = entries.getString("script");
+                                        String script = row.getString("script");
                                         Class clazz = groovyClassLoader.parseClass(script);
                                         PreFilter preFilter = (PreFilter) clazz.newInstance();
 
@@ -129,7 +128,6 @@ public class MySqlClient {
 
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding customize filters from mysql", e);
-                                        throwableInLoading[0] = e;
                                     }
 
                                 });
@@ -168,25 +166,24 @@ public class MySqlClient {
                 connEvent.result().query("select max_concurrent_reqs, timeout,circuit_breaker_force_open, circuit_breaker_force_close, circuit_breaker_error_threshold, uri, fallback_status_code, fallback_body from hystrix_config where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
-                                queryEvent.result().getRows().stream().forEach(entries -> {
+                                queryEvent.result().getRows().stream().forEach(row -> {
 
                                     try {
                                         HystrixConfig config = new HystrixConfig();
-                                        config.setUri(entries.getString("uri"));
-                                        config.setErrorThresholdPercentageOfCircuitBreaker(entries.getInteger("circuit_breaker_error_threshold", HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
-                                        config.setFallbackBody(entries.getString("fallback_body"));
-                                        config.setFallbackStatusCode(entries.getInteger("fallback_status_code", -1));
-                                        config.setForceCircuitBreakerClose(convertBool(entries.getInteger("circuit_breaker_force_close")));
-                                        config.setForceCircuitBreakerOpen(convertBool(entries.getInteger("circuit_breaker_force_open")));
-                                        config.setMaxConcurrentReqs(entries.getInteger("max_concurrent_reqs", -1));
-                                        config.setTimeout(entries.getInteger("timeout", -1));
+                                        config.setUri(row.getString("uri"));
+                                        config.setErrorThresholdPercentageOfCircuitBreaker(row.getInteger("circuit_breaker_error_threshold", HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
+                                        config.setFallbackBody(row.getString("fallback_body"));
+                                        config.setFallbackStatusCode(row.getInteger("fallback_status_code", -1));
+                                        config.setForceCircuitBreakerClose(convertBool(row.getInteger("circuit_breaker_force_close")));
+                                        config.setForceCircuitBreakerOpen(convertBool(row.getInteger("circuit_breaker_force_open")));
+                                        config.setMaxConcurrentReqs(row.getInteger("max_concurrent_reqs", -1));
+                                        config.setTimeout(row.getInteger("timeout", -1));
 
 
                                         result.add(config);
 
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding hystrix config from mysql", e);
-                                        throwableInLoading[0] = e;
                                     }
 
                                 });
@@ -225,19 +222,18 @@ public class MySqlClient {
                 connEvent.result().query("select origin_key_name, alias, uri from uri_key_alias where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
-                                queryEvent.result().getRows().stream().forEach(entries -> {
+                                queryEvent.result().getRows().stream().forEach(row -> {
 
                                     try {
                                         KeyAlias alias = new KeyAlias();
-                                        alias.setUri(entries.getString("uri"));
-                                        alias.setKey(entries.getString("origin_key_name"));
-                                        alias.setAlias(entries.getString("alias"));
+                                        alias.setUri(row.getString("uri"));
+                                        alias.setKey(row.getString("origin_key_name"));
+                                        alias.setAlias(row.getString("alias"));
 
                                         result.add(alias);
 
                                     } catch (Exception e) {
                                         LOGGER.error("Exception in loding key aliases from mysql", e);
-                                        throwableInLoading[0] = e;
                                     }
 
                                 });

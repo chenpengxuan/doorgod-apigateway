@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -79,7 +80,7 @@ public class MongodbClient {
                                     }
                                 }
                             } catch (Exception e ) {
-                                LOGGER.error("Failed to parse limit times rule offender:{}", jo);
+                                LOGGER.error("Failed to parse limit times rule offender:{}. ruleName:{}", jo, ruleName);
                             }
                         }
                     } else {
@@ -124,7 +125,7 @@ public class MongodbClient {
                                 Sample sample = JSON.parseObject(jo.getString("sample"), Sample.class);
                                 result.add(sample);
                             } catch (Exception e ) {
-                                LOGGER.error("Failed to parse limit times rule offender:{}", jo);
+                                LOGGER.error("Failed to parse blacklist rule offender:{}. ruleName:{}", jo, ruleName);
                             }
                         }
                     } else {
@@ -138,10 +139,15 @@ public class MongodbClient {
         latch.await();
 
         if ( throwables[0] != null ) {
-            throw new Exception("Failed to load limit times rule offenders", throwables[0]);
+            throw new Exception("Failed to load blacklist rule offenders", throwables[0]);
         }
 
         return result;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        mongoClient.close();
     }
 
     /**
