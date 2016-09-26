@@ -34,19 +34,13 @@ public class KeyAlias extends PrintFriendliness implements Comparable<KeyAlias> 
 
 
     /**
-     * uri越长，越优先匹配
+     * uri越长，越靠前，越优先匹配
      * @param o
      * @return
      */
     @Override
     public int compareTo(KeyAlias o) {
-        if ( o == null || o.uri == null ) {
-            return 1;
-        } else if ( uri == null ) {
-            return -1;
-        } else {
-            return o.uri.length() - uri.length();
-        }
+        return o.uri.length() - uri.length();
     }
 
     @Override
@@ -66,6 +60,6 @@ public class KeyAlias extends PrintFriendliness implements Comparable<KeyAlias> 
     }
 
     public boolean applicable( String uri ) {
-        return this.uri == null ? false : this.uri.startsWith(uri);
+        return this.uri.startsWith(uri);
     }
 }
