@@ -22,8 +22,6 @@ public class DimensionKeyValueFetcher {
 
     public static String KEY_NAME_URI = "uri";
 
-    public static String KEY_NAME_DEVICE_ID = "deviceId";
-
     public String fetch(String key, HttpServerRequest httpReq ) {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
@@ -37,6 +35,7 @@ public class DimensionKeyValueFetcher {
                 key = alias;
             }
 
+            //TODO: make sure case insensitive
             String value = httpReq.getParam(key);
             if ( value == null ) {
                 value = httpReq.headers().get(key);

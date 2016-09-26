@@ -30,7 +30,7 @@ public abstract class AbstractPreFilter implements PreFilter {
         boolean result = passable( req, context );
         if ( !result ) {
             LOGGER.warn("Request:{} is refused by Filter:{}. ruleName:{}, Sample:{}",
-                    req.path(), name(), context.ruleName, context.sample);
+                    req.uri(), name(), context.ruleName, context.sample);
 
             RejectReqEvent event = new RejectReqEvent();
             event.setFilterName(name());

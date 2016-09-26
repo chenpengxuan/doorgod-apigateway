@@ -31,7 +31,8 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
                 //filters自身永不被Hystrix熔断
                 .withCircuitBreakerEnabled(false)
                 .withExecutionTimeoutEnabled(false)
-                .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)));
+                .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)
+                .withRequestLogEnabled(false)));
         this.filtersExecutor = filtersExecutor;
         this.httpServerReq = httpServerReq;
     }

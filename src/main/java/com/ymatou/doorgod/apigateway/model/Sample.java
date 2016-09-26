@@ -11,13 +11,8 @@ public class Sample extends PrintFriendliness {
 
     public static final String NULL_VALUE_PLACEHOLDER = "NULL_FLAG";
 
-    public static final String KEY_IP = "ip";
 
-    public static final String KEY_URI = "uri";
-
-    public static final String KEY_DEVICE_ID = "deviceId";
-
-    //样本值
+    //样本值,按key字典序排序
     //<em>明确定义为TreeMap,使得fastjson反序列化时，使用TreeMap,否则会使用默认的HashMap</em>
     private TreeMap<String, String> dimensionValues = new TreeMap<String, String>( );
 

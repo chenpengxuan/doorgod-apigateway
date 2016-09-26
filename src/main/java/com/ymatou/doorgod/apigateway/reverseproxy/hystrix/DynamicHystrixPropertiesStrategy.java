@@ -41,7 +41,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         if (commandKey.name().equalsIgnoreCase(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR)) {
             return super.getCommandProperties(commandKey, builder);
         }
-        return null;
+        return commandKeyToProperties.getUnchecked(commandKey);
     }
 
     @Override
@@ -76,10 +76,8 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
             if (config.getErrorThresholdPercentageOfCircuitBreaker() != null && config.getErrorThresholdPercentageOfCircuitBreaker() > 0 ) {
                 setter.withCircuitBreakerErrorThresholdPercentage(config.getErrorThresholdPercentageOfCircuitBreaker());
             }
-            if (config.getTimeout() != null && config.getTimeout() > 0 ) {
-                setter.withExecutionTimeoutEnabled(true);
-                setter.withExecutionTimeoutInMilliseconds(config.getTimeout( ));
-            }
+
+            //timeout属性已经在Vertx httpclient设定，Hystrix无需再设
         }
 
         return setter;

@@ -1,7 +1,7 @@
 package com.ymatou.doorgod.apigateway.model;
 
 /**
- * 发送给决策引擎的统计单元。一个请求一个
+ * 发送给决策引擎的统计单元。一个http请求一个
  * Created by tuwenjie on 2016/9/9.
  */
 public class StatisticItem {
