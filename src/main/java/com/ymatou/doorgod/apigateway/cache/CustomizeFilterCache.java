@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +22,9 @@ public class CustomizeFilterCache implements Cache {
 
     @Override
     public void reload() throws Exception {
-        customizeFilters = mySqlClient.loadCustomizeFilters();
+        List<PreFilter> loadeds = mySqlClient.loadCustomizeFilters();
+        Collections.sort(loadeds, new PreFilter.PreFilterComparator());
+        customizeFilters = loadeds;
     }
 
     public List<PreFilter> getCustomizeFilters() {
