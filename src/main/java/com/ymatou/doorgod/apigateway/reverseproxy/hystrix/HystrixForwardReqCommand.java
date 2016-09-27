@@ -6,6 +6,7 @@ import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
 import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
 import com.ymatou.doorgod.apigateway.model.Sample;
+import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
 import com.ymatou.doorgod.apigateway.utils.Utils;
@@ -30,8 +31,10 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private Vertx vertx;
 
+    private TargetServer targetServer;
+
     public HystrixForwardReqCommand(HttpClient httpClient, HttpServerRequest httpServerReq,
-                                    Vertx vertx) {
+                                    Vertx vertx, TargetServer targetServer) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
@@ -49,7 +52,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             public void call(Subscriber<? super Void> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient, vertx);
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient, vertx, targetServer);
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {

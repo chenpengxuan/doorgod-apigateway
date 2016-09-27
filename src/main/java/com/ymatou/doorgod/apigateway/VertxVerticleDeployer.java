@@ -1,9 +1,16 @@
 package com.ymatou.doorgod.apigateway;
 
+import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.config.BizConfig;
+import com.ymatou.doorgod.apigateway.integration.MySqlClient;
+import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +18,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -21,19 +30,41 @@ import java.util.concurrent.CountDownLatch;
 @Component
 public class VertxVerticleDeployer implements ApplicationListener {
 
+    public static final String CONFIG_NAME_TARGET_SERVER = "targetServer";
+
+    public static final String CONFIG_NAME_HTTP_CLIENT= "httpClient";
+
     @Autowired
     private Vertx vertx;
+
+    @Autowired
+    private MySqlClient mySqlClient;
+
+    @Autowired
+    private AppConfig appConfig;
 
     private static Logger LOGGER = LoggerFactory.getLogger(VertxVerticleDeployer.class);
 
     private void deployVerticles() {
+
+        TargetServer targetServer = null;
+        HttpClient httpClient = null;
+
+        try {
+            targetServer = mySqlClient.locateTargetServer();
+            httpClient = buildHttpClient(targetServer);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         CountDownLatch latch = new CountDownLatch(1);
 
         Throwable[] throwables = new Throwable[]{null};
 
         vertx.deployVerticle(HttpServerVerticle.class.getName(),
-                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE),
+                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE)
+                    .setConfig(new JsonObject().put(CONFIG_NAME_TARGET_SERVER, targetServer)
+                                .put(CONFIG_NAME_HTTP_CLIENT, httpClient)),
                 result -> {
                     if (result.failed()) {
                         throwables[0] = result.cause();
@@ -60,5 +91,54 @@ public class VertxVerticleDeployer implements ApplicationListener {
         if (applicationEvent instanceof ApplicationReadyEvent) {
             deployVerticles();
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        vertx.close();
+    }
+
+
+    private HttpClient buildHttpClient(TargetServer server) throws Exception {
+
+        HttpClientOptions httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setConnectTimeout(1000);
+        httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
+        httpClientOptions.setLogActivity(false);
+
+
+        HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
+
+
+        if (StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
+            //预加载到目标服务器，譬如Nginx的连接
+            final Throwable[] throwableInWarmupTargetServer = {null};
+            CountDownLatch latch = new CountDownLatch(appConfig.getInitHttpConnections());
+            for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
+                httpClient.get(server.getPort(), server.getHost(),
+                        appConfig.getTargetServerWarmupUri().trim(),
+                        targetResp -> {
+                            targetResp.endHandler(v -> {
+                                latch.countDown();
+                            });
+                            targetResp.exceptionHandler(throwable -> {
+                                throwableInWarmupTargetServer[0] = throwable;
+                                while (latch.getCount() > 0) {
+                                    latch.countDown();
+                                }
+                            });
+                        });
+            }
+
+            latch.await();
+
+            if (throwableInWarmupTargetServer[0] != null) {
+                throw new Exception("Failed to call warmup of target server. ApiGateway refuse to startup",
+                        throwableInWarmupTargetServer[0]);
+            }
+
+        }
+
+        return httpClient;
     }
 }

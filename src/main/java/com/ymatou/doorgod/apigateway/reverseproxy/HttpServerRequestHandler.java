@@ -4,6 +4,7 @@ import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.config.BizConfig;
+import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
@@ -30,10 +31,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private Vertx vertx;
 
-    public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient, Vertx vertx) {
+    private TargetServer targetServer;
+
+    public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient,
+                                    Vertx vertx, TargetServer targetServer) {
         this.subscriber = subscriber;
         this.httpClient = httpClient;
         this.vertx = vertx;
+        this.targetServer = targetServer;
     }
 
     @Override
@@ -79,11 +84,8 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             fallback(httpServerReq, "Refused by filters");
             onCompleted();
         } else {
-            BizConfig bizConfig = SpringContextHolder.getBean(BizConfig.class);
-
-            //TODO: target loaded from DB
-            HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), bizConfig.getTargetWebServerPort(),
-                    bizConfig.getTargetWebServerHost(),
+            HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), targetServer.getPort(),
+                    targetServer.getHost(),
                     httpServerReq.uri(),
                     targetResp -> {
                         httpServerReq.response().setChunked(true);
