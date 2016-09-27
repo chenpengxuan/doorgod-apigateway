@@ -1,10 +1,8 @@
-package com.ymatou.doorgod.apigateway;
+package com.ymatou.doorgod.apigateway.reverseproxy;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.config.BizConfig;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
-import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -21,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -28,14 +28,13 @@ import java.util.concurrent.CountDownLatch;
  * Created by tuwenjie on 2016/9/21.
  */
 @Component
-public class VertxVerticleDeployer implements ApplicationListener {
+public class VertxVerticleDeployer {
 
-    public static final String CONFIG_NAME_TARGET_SERVER = "targetServer";
+    public static TargetServer targetServer = null;
 
-    public static final String CONFIG_NAME_HTTP_CLIENT= "httpClient";
+    public static HttpClient httpClient = null;
 
-    @Autowired
-    private Vertx vertx;
+    public static Vertx vertx = null;
 
     @Autowired
     private MySqlClient mySqlClient;
@@ -45,10 +44,11 @@ public class VertxVerticleDeployer implements ApplicationListener {
 
     private static Logger LOGGER = LoggerFactory.getLogger(VertxVerticleDeployer.class);
 
-    private void deployVerticles() {
+    public void deployVerticles() {
 
-        TargetServer targetServer = null;
-        HttpClient httpClient = null;
+        //当前无需更多配置
+        VertxOptions vertxOptions = new VertxOptions();
+        vertx = Vertx.vertx(vertxOptions);
 
         try {
             targetServer = mySqlClient.locateTargetServer();
@@ -62,9 +62,7 @@ public class VertxVerticleDeployer implements ApplicationListener {
         Throwable[] throwables = new Throwable[]{null};
 
         vertx.deployVerticle(HttpServerVerticle.class.getName(),
-                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE)
-                    .setConfig(new JsonObject().put(CONFIG_NAME_TARGET_SERVER, targetServer)
-                                .put(CONFIG_NAME_HTTP_CLIENT, httpClient)),
+                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE),
                 result -> {
                     if (result.failed()) {
                         throwables[0] = result.cause();
@@ -84,13 +82,6 @@ public class VertxVerticleDeployer implements ApplicationListener {
         }
 
         LOGGER.info("Succeed in startup ApiGateway");
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationEvent applicationEvent) {
-        if (applicationEvent instanceof ApplicationReadyEvent) {
-            deployVerticles();
-        }
     }
 
     @PreDestroy

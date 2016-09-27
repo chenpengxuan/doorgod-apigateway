@@ -9,6 +9,7 @@ import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
+import com.ymatou.doorgod.apigateway.reverseproxy.VertxVerticleDeployer;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
@@ -31,18 +32,15 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private Vertx vertx;
 
-    private TargetServer targetServer;
-
-    public HystrixForwardReqCommand(HttpClient httpClient, HttpServerRequest httpServerReq,
-                                    Vertx vertx, TargetServer targetServer) {
+    public HystrixForwardReqCommand(HttpServerRequest httpServerReq ) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou"))
             .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path())));
-        this.httpClient = httpClient;
+        this.httpClient = VertxVerticleDeployer.httpClient;
         this.httpServerReq = httpServerReq;
-        this.vertx = vertx;
+        this.vertx = VertxVerticleDeployer.vertx;
     }
 
     @Override
@@ -52,7 +50,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             public void call(Subscriber<? super Void> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient, vertx, targetServer);
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber);
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {

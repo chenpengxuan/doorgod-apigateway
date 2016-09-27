@@ -1,9 +1,11 @@
 package com.ymatou.doorgod.apigateway;
 
+import com.ymatou.doorgod.apigateway.reverseproxy.VertxVerticleDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
@@ -15,13 +17,13 @@ public class ApigatewayApplication {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ApigatewayApplication.class);
 
-
     public static void main(String[] args) {
         //指示vertx使用logback记日志
         System.setProperty("vertx.logger-delegate-factory-class-name",
                 io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
-        SpringApplication.run(ApigatewayApplication.class, args);
+        ApplicationContext context = SpringApplication.run(ApigatewayApplication.class, args);
 
+        context.getBean(VertxVerticleDeployer.class).deployVerticles();
     }
 
 }
