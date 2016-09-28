@@ -5,6 +5,7 @@ import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,6 +21,7 @@ public class CustomizeFilterCache implements Cache {
     @Autowired
     private MySqlClient mySqlClient;
 
+    @PostConstruct
     @Override
     public void reload() throws Exception {
         List<PreFilter> loadeds = mySqlClient.loadCustomizeFilters();

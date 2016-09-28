@@ -5,6 +5,7 @@ import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class HystrixConfigCache implements Cache {
 
     private Map<String, HystrixConfig> uriToConfigs = new HashMap<String, HystrixConfig>();
 
-
+    @PostConstruct
     @Override
     public void reload() throws Exception {
 

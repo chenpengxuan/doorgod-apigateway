@@ -8,6 +8,7 @@ import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ public class KeyAliasCache implements Cache {
      */
     private LoadingCache<String, Map<String, String>> uriToAliases;
 
+    @PostConstruct
     @Override
     public void reload() throws Exception {
         aliases =  mySqlClient.loadKeyAliases();
