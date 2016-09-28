@@ -28,19 +28,13 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private HttpServerRequest httpServerReq;
 
-    private HttpClient httpClient;
-
-    private Vertx vertx;
-
     public HystrixForwardReqCommand(HttpServerRequest httpServerReq ) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou"))
             .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path())));
-        this.httpClient = VertxVerticleDeployer.httpClient;
         this.httpServerReq = httpServerReq;
-        this.vertx = VertxVerticleDeployer.vertx;
     }
 
     @Override

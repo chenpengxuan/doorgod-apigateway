@@ -18,14 +18,14 @@ public class DimensionKeyValueFetcher {
     @Autowired
     private KeyAliasCache keyAliasCache;
 
-    public static String KEY_NAME_IP = "ip";
+    public static final String KEY_NAME_IP = "ip";
 
-    public static String KEY_NAME_URI = "uri";
+    public static final String KEY_NAME_URI = "uri";
 
     public String fetch(String key, HttpServerRequest httpReq ) {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
-        } else if (KEY_NAME_URI.equals(KEY_NAME_URI)) {
+        } else if (KEY_NAME_URI.equals( key )) {
             return httpReq.path();
         } else {
 
