@@ -40,7 +40,8 @@ repositories {
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
-	compile("org.springframework.boot:spring-boot-starter-actuator")
+	compile("org.springframework.boot:spring-boot-starter-web")
+	compile("org.springframework.boot:spring-boot-starter-tomcat")
 	compile 'io.vertx:vertx-core:3.3.3'
 	compile 'io.vertx:vertx-mongo-client:3.3.3'
 	compile 'com.ymatou.disconf:disconf-client:2.6.35'
@@ -52,7 +53,7 @@ dependencies {
 	compile 'com.alibaba:fastjson:1.2.17'
 	compile 'io.vertx:vertx-mysql-postgresql-client:3.3.3'
 	compile 'com.google.guava:guava:19.0'
-	compile ('com.ymatou.errorreporter:errorreporter-logback:1.0.2') {
+	compile ('com.ymatou.errorreporter:errorreporter-logback:1.0.3') {
 		exclude group: 'io.netty'
 	}
 	testCompile('org.springframework.boot:spring-boot-starter-test')

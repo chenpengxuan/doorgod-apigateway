@@ -8,7 +8,7 @@
 	
 	<property name="level" value="info" />
 	<property name="charset" value="UTF-8" />
-	<property name="immediateFlush" value="true" />
+	<property name="immediateFlush" value="false" />
 	<property name="queueSize" value="1024" />
 
 	
@@ -19,6 +19,8 @@
 
 		<!-- your application id -->
 		<param name="appId" value="${appId}" />
+
+		<param name="enableCat" value="false"/>
 	</appender>
 
 	<appender name="ERROR-APPENDER"

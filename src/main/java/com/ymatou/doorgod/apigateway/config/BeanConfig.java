@@ -1,7 +1,11 @@
 package com.ymatou.doorgod.apigateway.config;
 
+import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,6 +15,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BeanConfig {
 
+    @Value("${tomcatPort}")
+    private int tomcatPort;
+
     @Bean
     public Vertx vertx( ) {
 
@@ -18,4 +25,20 @@ public class BeanConfig {
         VertxOptions vertxOptions = new VertxOptions();
         return Vertx.vertx(vertxOptions);
     }
+
+
+    @Bean
+    public ServletRegistrationBean servletRegistrationBean( ) {
+        return new ServletRegistrationBean(new HystrixMetricsStreamServlet(),"/hystrix.stream");
+    }
+
+
+    @Bean
+    public EmbeddedServletContainerCustomizer containerCustomizer() {
+        return (container -> {
+            container.setPort(tomcatPort);
+        });
+    }
+
+
 }

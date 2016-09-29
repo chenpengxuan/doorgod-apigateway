@@ -40,6 +40,7 @@
         <property name="locations">
             <list>
                 <value>classpath:mysql.properties</value>
+                <value>classpath:mongo.properties</value>
             </list>
         </property>
     </bean>

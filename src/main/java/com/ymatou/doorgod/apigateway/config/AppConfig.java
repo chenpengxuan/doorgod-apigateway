@@ -13,9 +13,6 @@ public class AppConfig {
     @Value("${vertxServerPort}")
     private int vertxServerPort;
 
-    @Value("${redisUrl}")
-    private String redisUrl;
-
     @Value("${kafkaUrl}")
     private String kafkaUrl;
 
@@ -58,14 +55,6 @@ public class AppConfig {
 
     public void setVertxServerPort(int vertxServerPort) {
         this.vertxServerPort = vertxServerPort;
-    }
-
-    public String getRedisUrl() {
-        return redisUrl;
-    }
-
-    public void setRedisUrl(String redisUrl) {
-        this.redisUrl = redisUrl;
     }
 
     public String getKafkaUrl() {
