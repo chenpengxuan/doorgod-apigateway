@@ -81,6 +81,9 @@ task copyJars(type: Copy,dependsOn:jar) {
 task copyConfig(type: Copy){
 	from "$projectDir/src/main/resources/"
 	into "$buildDir/dist/conf"
+	include 'logback.xml'
+	include 'version.txt'
+	include 'spring/*.*'
 }
 
 //打包发布 发布为：gradle release 默认位置为：build/distributions
