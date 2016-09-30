@@ -3,7 +3,6 @@ package com.ymatou.doorgod.apigateway.reverseproxy;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.config.BizConfig;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
