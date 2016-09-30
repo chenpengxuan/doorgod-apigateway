@@ -22,6 +22,11 @@ apply plugin: 'spring-boot'
 jar {
 	baseName = 'doorgod-apigateway'
 	version = '1.0.0'
+
+	exclude('logback-test.xml')
+	exclude('logback.xml')
+	exclude('version.txt')
+	exclude{ it.name.endsWith('.properties');}
 }
 compileJava {
 	sourceCompatibility = 1.8
@@ -83,7 +88,6 @@ task copyConfig(type: Copy){
 	into "$buildDir/dist/conf"
 	include 'logback.xml'
 	include 'version.txt'
-	include 'spring/*.*'
 }
 
 //打包发布 发布为：gradle release 默认位置为：build/distributions
