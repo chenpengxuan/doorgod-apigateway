@@ -33,7 +33,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou"))
-            .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path())));
+            .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path().toLowerCase())));
         this.httpServerReq = httpServerReq;
     }
 
@@ -67,12 +67,12 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         LOGGER.warn("Circuit Breaker open for uri", httpServerReq.path());
                     } else {
                         LOGGER.error("Request is rejected by Hystrix:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}",
-                                HystrixForwardReqCommand.this.httpServerReq.path(),
+                                HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase(),
                                 HystrixForwardReqCommand.this.isResponseShortCircuited(),
                                 HystrixForwardReqCommand.this.isResponseSemaphoreRejected());
 
                         RejectReqEvent event = new RejectReqEvent();
-                        event.setUri(HystrixForwardReqCommand.this.httpServerReq.path());
+                        event.setUri(HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase());
                         event.setTime(Utils.getCurrentTime());
                         event.setSample(new Sample());
                         event.setRuleName(HystrixForwardReqCommand.this.isResponseSemaphoreRejected() ? "MaxConcurrent" : "CircuitBreaker");

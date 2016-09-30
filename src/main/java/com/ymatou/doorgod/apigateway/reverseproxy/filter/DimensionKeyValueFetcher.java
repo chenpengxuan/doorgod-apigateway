@@ -26,10 +26,10 @@ public class DimensionKeyValueFetcher {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
         } else if (KEY_NAME_URI.equals( key )) {
-            return httpReq.path();
+            return httpReq.path().toLowerCase();
         } else {
 
-            String alias = keyAliasCache.getAlias(httpReq.path(), key);
+            String alias = keyAliasCache.getAlias(httpReq.path().toLowerCase(), key);
 
             if (alias != null ) {
                 key = alias;

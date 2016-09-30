@@ -43,20 +43,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     @Override
     public void handle(HttpServerRequest httpServerReq) {
         LOGGER.debug("Recv:{}, by handler:{}", httpServerReq.path(), this);
-        if (httpServerReq.path().equals("/warmup")) {
-            httpServerReq.response().end("ok");
-            return;
-        } else if (httpServerReq.path().equals("/version")) {
-            vertx.fileSystem().readFile(HttpServerRequestHandler.class.getResource("/version.txt").getFile(),
-                    result -> {
-                        if (result.succeeded()) {
-                            httpServerReq.response().end(result.result());
-                        }
-                    });
-            return;
-        }
 
-        //其他uri, 反向代理
         FiltersExecutor filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
 
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
@@ -152,7 +139,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
 
-        HystrixConfig config = configCache.locate(httpServerReq.path());
+        HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
 
         if (config != null && config.getFallbackStatusCode() != null
                 && config.getFallbackStatusCode() > 0 ) {

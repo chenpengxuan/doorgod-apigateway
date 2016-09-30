@@ -78,7 +78,7 @@ public class FiltersExecutor {
             //只有通过的请求，才需要继续累计
             StatisticItem item = new StatisticItem();
             item.setSample(sample);
-            item.setUri(httpReq.path());
+            item.setUri(httpReq.path().toLowerCase());
             item.setReqTime(Utils.getCurrentTime());
             kafkaClient.sendStatisticItem(item);
         }

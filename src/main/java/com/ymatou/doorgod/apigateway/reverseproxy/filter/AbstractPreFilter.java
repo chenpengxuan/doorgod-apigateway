@@ -37,7 +37,7 @@ public abstract class AbstractPreFilter implements PreFilter {
             event.setRuleName(context.ruleName);
             event.setSample(context.sample);
             event.setTime(Utils.getCurrentTime());
-            event.setUri(req.path());
+            event.setUri(req.path().toLowerCase());
 
             kafkaClient.sendRejectReqEvent(event);
         }

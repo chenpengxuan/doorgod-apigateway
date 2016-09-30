@@ -25,7 +25,7 @@ public class LimitTimesRulesFilter extends AbstractPreFilter {
 
     @Override
     protected boolean passable(HttpServerRequest req, FilterContext context) {
-        for (LimitTimesRule rule : ruleCache.applicableLimitTimesRules(req.path())) {
+        for (LimitTimesRule rule : ruleCache.applicableLimitTimesRules(req.path().toLowerCase())) {
             context.ruleName = rule.getName();
             Sample sample = context.sample.narrow(
                     CollectionUtils.isEmpty(rule.getGroupByKeys()) ? rule.getDimensionKeys() : rule.getGroupByKeys());
