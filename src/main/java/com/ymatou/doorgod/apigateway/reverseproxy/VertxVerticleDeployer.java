@@ -36,6 +36,8 @@ public class VertxVerticleDeployer {
 
     public static Vertx vertx = null;
 
+    public static boolean success = false;
+
     @Autowired
     private MySqlClient mySqlClient;
 
@@ -81,6 +83,7 @@ public class VertxVerticleDeployer {
             throw new RuntimeException("Failed to startup ApiGateway", throwables[0]);
         }
 
+        success = true;
         LOGGER.info("Succeed in startup ApiGateway");
     }
 
