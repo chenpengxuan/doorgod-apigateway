@@ -99,7 +99,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
              * 对于明确设置了超时时间的uri,设定超时时间
              */
             HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
-            HystrixConfig config = configCache.locate(httpServerReq.path());
+            HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
             if ( config != null && config.getTimeout() != null && config.getTimeout() > 0 ) {
                 forwardClientReq.setTimeout(config.getTimeout());
             }

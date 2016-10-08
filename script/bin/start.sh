@@ -2,7 +2,7 @@
 
 source "/etc/profile"
 GCLOGPATH="logs/gc.log"
-MAIN_CLASS="com.ymatou.tradingquery.starter.Application"
+MAIN_CLASS="com.ymatou.doorgod.apigateway.ApigatewayApplication"
 APP_NAME="apigateway.doorgod.iapi.ymatou.com"
 CLASS_PATH="lib/*:conf"
 JAVA_OPTS=" -server \
