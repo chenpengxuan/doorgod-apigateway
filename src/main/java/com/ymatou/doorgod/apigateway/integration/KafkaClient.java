@@ -121,7 +121,7 @@ public class KafkaClient {
             } catch (WakeupException we) {
                 //just ignore shutdown exception
             } catch (Exception e) {
-                LOGGER.error("Failed to poll kafka message.", e);
+                throw new RuntimeException("Failed to poll kafka message. ApiGateway refused to startup", e);
             } finally {
                 consumer.close();
             }

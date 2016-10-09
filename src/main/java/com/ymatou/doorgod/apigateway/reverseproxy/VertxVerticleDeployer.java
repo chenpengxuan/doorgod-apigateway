@@ -32,8 +32,6 @@ public class VertxVerticleDeployer {
 
     public static TargetServer targetServer = null;
 
-    public static HttpClient httpClient = null;
-
     public static Vertx vertx = null;
 
     public static boolean success = false;
@@ -54,7 +52,6 @@ public class VertxVerticleDeployer {
 
         try {
             targetServer = mySqlClient.locateTargetServer();
-            httpClient = buildHttpClient(targetServer);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -90,49 +87,5 @@ public class VertxVerticleDeployer {
     @PreDestroy
     public void destroy() {
         vertx.close();
-    }
-
-
-    private HttpClient buildHttpClient(TargetServer server) throws Exception {
-
-        HttpClientOptions httpClientOptions = new HttpClientOptions();
-        httpClientOptions.setConnectTimeout(1000);
-        httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
-        httpClientOptions.setLogActivity(false);
-
-
-        HttpClient httpClient = vertx.createHttpClient(httpClientOptions);
-
-
-        if (StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
-            //预加载到目标服务器，譬如Nginx的连接
-            final Throwable[] throwableInWarmupTargetServer = {null};
-            CountDownLatch latch = new CountDownLatch(appConfig.getInitHttpConnections());
-            for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
-                httpClient.get(server.getPort(), server.getHost(),
-                        appConfig.getTargetServerWarmupUri().trim(),
-                        targetResp -> {
-                            targetResp.endHandler(v -> {
-                                latch.countDown();
-                            });
-                            targetResp.exceptionHandler(throwable -> {
-                                throwableInWarmupTargetServer[0] = throwable;
-                                while (latch.getCount() > 0) {
-                                    latch.countDown();
-                                }
-                            });
-                        });
-            }
-
-            latch.await();
-
-            if (throwableInWarmupTargetServer[0] != null) {
-                throw new Exception("Failed to call warmup of target server. ApiGateway refuse to startup",
-                        throwableInWarmupTargetServer[0]);
-            }
-
-        }
-
-        return httpClient;
     }
 }

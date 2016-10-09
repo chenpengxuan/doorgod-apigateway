@@ -28,13 +28,16 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private HttpServerRequest httpServerReq;
 
-    public HystrixForwardReqCommand(HttpServerRequest httpServerReq ) {
+    private HttpClient httpClient;
+
+    public HystrixForwardReqCommand(HttpServerRequest httpServerReq, HttpClient httpClient ) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou"))
             .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path().toLowerCase())));
         this.httpServerReq = httpServerReq;
+        this.httpClient = httpClient;
     }
 
     @Override
@@ -44,7 +47,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             public void call(Subscriber<? super Void> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber);
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {

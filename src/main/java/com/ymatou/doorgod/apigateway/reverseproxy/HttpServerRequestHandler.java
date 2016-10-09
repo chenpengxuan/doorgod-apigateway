@@ -32,9 +32,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private TargetServer targetServer;
 
-    public HttpServerRequestHandler(Subscriber<? super Void> subscriber ) {
+    public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient ) {
         this.subscriber = subscriber;
-        this.httpClient = VertxVerticleDeployer.httpClient;
+        this.httpClient = httpClient;
         this.vertx = VertxVerticleDeployer.vertx;
         this.targetServer = VertxVerticleDeployer.targetServer;
     }
