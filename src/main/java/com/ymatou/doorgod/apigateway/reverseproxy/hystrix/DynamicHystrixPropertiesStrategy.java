@@ -83,6 +83,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         return setter;
     }
 
+    @PostConstruct
     @Override
     public void reload() throws Exception {
         if (commandKeyToProperties == null) {

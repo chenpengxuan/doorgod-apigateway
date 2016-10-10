@@ -23,7 +23,10 @@ public class ApigatewayApplication {
                 io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
         ApplicationContext context = SpringApplication.run(ApigatewayApplication.class, args);
 
-        context.getBean(VertxVerticleDeployer.class).deployVerticles();
+        try {
+            context.getBean(VertxVerticleDeployer.class).deployVerticles();
+        } catch ( Exception e ) {
+            LOGGER.error("Failed to startup", e);
+        }
     }
-
 }

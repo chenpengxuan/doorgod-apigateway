@@ -17,10 +17,13 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import java.util.List;
 
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -29,6 +32,15 @@ import java.util.concurrent.CountDownLatch;
  */
 @Component
 public class VertxVerticleDeployer {
+
+    //vertice实例个数
+    public static final int VERTICLE_INSTANCES = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE;
+
+    public static final String ADDRESS_START_WARMUP_TARGET_SERVER = "address-start-warmup";
+
+    public static final String ADDRESS_END_WARMUP_TARGET_SERVER = "address-end-warmup";
+
+    public static final String WARM_UP_SUCCESS_MSG = "ok";
 
     public static TargetServer targetServer = null;
 
@@ -44,7 +56,7 @@ public class VertxVerticleDeployer {
 
     private static Logger LOGGER = LoggerFactory.getLogger(VertxVerticleDeployer.class);
 
-    public void deployVerticles() {
+    public void deployVerticles() throws Exception {
 
         //当前无需更多配置
         VertxOptions vertxOptions = new VertxOptions();
@@ -70,14 +82,32 @@ public class VertxVerticleDeployer {
                 });
 
         //等待Verticles部署完成
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            throwables[0] = e;
-        }
+        latch.await();
+
 
         if (throwables[0] != null) {
             throw new RuntimeException("Failed to startup ApiGateway", throwables[0]);
+        }
+
+        boolean[] warmUpSuccess = new boolean[]{true};
+
+        CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES);
+
+        vertx.eventBus().consumer(ADDRESS_END_WARMUP_TARGET_SERVER, event -> {
+            if ( !event.body().toString().equals(WARM_UP_SUCCESS_MSG)) {
+                warmUpSuccess[0] = false;
+            }
+            warmupLatch.countDown();
+        });
+
+        //通知各个Verticle去预创建到TargetServer的连接
+        vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
+
+        //等待各个Verticle预创建连接完毕
+        warmupLatch.await();
+
+        if (!warmUpSuccess[0]) {
+            throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
         }
 
         success = true;
@@ -88,4 +118,5 @@ public class VertxVerticleDeployer {
     public void destroy() {
         vertx.close();
     }
+
 }

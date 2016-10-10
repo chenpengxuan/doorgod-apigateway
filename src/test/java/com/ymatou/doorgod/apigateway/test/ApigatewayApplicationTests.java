@@ -20,7 +20,7 @@ import java.io.IOException;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class ApigatewayApplicationTests extends  BaseTest {
+public class ApigatewayApplicationTests extends BaseTest {
 
 	@Autowired
 	private MySqlClient mySqlClient;
@@ -34,8 +34,8 @@ public class ApigatewayApplicationTests extends  BaseTest {
 			{
 				mySqlClient.locateTargetServer();
 				TargetServer server = new TargetServer();
-				server.setHost("localhost");
-				server.setPort(8089);
+				server.setHost("172.16.103.124");
+				server.setPort(8081);
 				result = server;
 
 			}
@@ -46,7 +46,7 @@ public class ApigatewayApplicationTests extends  BaseTest {
 	}
 
 	@Test
-	public void contextLoads() throws IOException {
+	public void contextLoads() throws Exception {
 		vertxVerticleDeployer.deployVerticles();
 		System.in.read();
 	}
