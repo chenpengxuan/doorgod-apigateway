@@ -18,6 +18,7 @@ public class ApigatewayApplication {
     private static Logger LOGGER = LoggerFactory.getLogger(ApigatewayApplication.class);
 
     public static void main(String[] args) {
+
         //指示vertx使用logback记日志
         System.setProperty("vertx.logger-delegate-factory-class-name",
                 io.vertx.core.logging.SLF4JLogDelegateFactory.class.getName());
@@ -28,5 +29,6 @@ public class ApigatewayApplication {
         } catch ( Exception e ) {
             LOGGER.error("Failed to startup", e);
         }
+
     }
 }

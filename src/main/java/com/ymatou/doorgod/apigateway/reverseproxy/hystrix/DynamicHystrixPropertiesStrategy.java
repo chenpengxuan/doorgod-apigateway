@@ -31,7 +31,8 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
     private LoadingCache<HystrixCommandKey, HystrixCommandProperties> commandKeyToProperties;
 
     @PostConstruct
-    public void init( ) {
+    public void init( ) throws Exception {
+        reload();
         HystrixPlugins.getInstance().registerPropertiesStrategy(this);
     }
 
@@ -58,6 +59,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         HystrixCommandProperties.Setter setter = HystrixCommandProperties.Setter();
 
         setter.withExecutionTimeoutEnabled(false);
+        setter.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE);
 
         setter.withRequestLogEnabled(false);
 
@@ -83,7 +85,6 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         return setter;
     }
 
-    @PostConstruct
     @Override
     public void reload() throws Exception {
         if (commandKeyToProperties == null) {
