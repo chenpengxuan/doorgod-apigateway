@@ -73,9 +73,11 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                     targetServer.getHost(),
                     httpServerReq.uri(),
                     targetResp -> {
-                        httpServerReq.response().setChunked(true);
                         httpServerReq.response().setStatusCode(targetResp.statusCode());
                         httpServerReq.response().headers().setAll(targetResp.headers());
+                        if ( "Chunked".equalsIgnoreCase(httpServerReq.response().headers().get("Transfer-Encoding"))){
+                            httpServerReq.response().setChunked(true);
+                        }
                         targetResp.handler(data -> {
                             httpServerReq.response().write(data);
                         });

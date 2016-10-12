@@ -69,6 +69,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
         setter.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE);
 
         setter.withRequestLogEnabled(false);
+        setter.withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE);
 
         if ( config != null ) {
 
