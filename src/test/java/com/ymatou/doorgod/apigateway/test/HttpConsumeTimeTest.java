@@ -24,9 +24,9 @@ public class HttpConsumeTimeTest {
 
         HttpClient httpClient = HttpClients.custom().setConnectionManager(cm).setDefaultRequestConfig(requestConfig).build();
 
-        HttpPost httpPost = new HttpPost("http://172.16.103.127:8081/10ms1k");
+        HttpPost httpPost = new HttpPost("http://172.16.103.127:8081/100ms1k");
         HttpResponse response = null;
-        int loops = 5000;
+        int loops = 1000;
         long startTime = System.currentTimeMillis();
         for ( int i=0; i<loops; i++) {
 
