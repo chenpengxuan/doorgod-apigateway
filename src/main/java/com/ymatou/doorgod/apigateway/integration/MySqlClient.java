@@ -86,6 +86,7 @@ public class MySqlClient {
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
                             }
+                            connEvent.result().close();
                             latch.countDown();
                         });
             } else {
@@ -137,6 +138,7 @@ public class MySqlClient {
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
                             }
+                            connEvent.result().close();
                             latch.countDown();
                         });
             } else {
@@ -173,12 +175,14 @@ public class MySqlClient {
                                     try {
                                         HystrixConfig config = new HystrixConfig();
                                         config.setUri(row.getString("uri"));
-                                        config.setErrorThresholdPercentageOfCircuitBreaker(row.getInteger("circuit_breaker_error_threshold", HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
+                                        config.setErrorThresholdPercentageOfCircuitBreaker(
+                                                replaceNullAndZeroWithDefault(row.getInteger("circuit_breaker_error_threshold"),
+                                                        HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
                                         config.setFallbackBody(row.getString("fallback_body"));
                                         config.setFallbackStatusCode(row.getInteger("fallback_status_code", -1));
                                         config.setForceCircuitBreakerClose(convertBool(row.getInteger("circuit_breaker_force_close")));
                                         config.setForceCircuitBreakerOpen(convertBool(row.getInteger("circuit_breaker_force_open")));
-                                        config.setMaxConcurrentReqs(row.getInteger("max_concurrent_reqs", -1));
+                                        config.setMaxConcurrentReqs(replaceNullAndZeroWithDefault(row.getInteger("max_concurrent_reqs"), Integer.MAX_VALUE));
                                         config.setTimeout(row.getInteger("timeout", -1));
 
 
@@ -193,6 +197,7 @@ public class MySqlClient {
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
                             }
+                            connEvent.result().close();
                             latch.countDown();
                         });
             } else {
@@ -243,6 +248,7 @@ public class MySqlClient {
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
                             }
+                            connEvent.result().close();
                             latch.countDown();
                         });
             } else {
@@ -292,6 +298,7 @@ public class MySqlClient {
                             } else {
                                 throwableInLoading[0] = queryEvent.cause();
                             }
+                            connEvent.result().close();
                             latch.countDown();
                         });
             } else {
@@ -339,4 +346,10 @@ public class MySqlClient {
     private boolean convertBool( Integer value ) {
         return value != null && value > 0;
     }
+
+    private Integer replaceNullAndZeroWithDefault(Integer value,Integer defaultValue){
+        return (value == null || value == 0) ? defaultValue:value;
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
@@ -24,6 +25,14 @@ import rx.Subscriber;
  */
 public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
+    /**
+     * 解决信号量 最大并发动态更新
+     * @param commandKey
+     */
+    public static void removeCommandKey(String commandKey){
+        executionSemaphorePerCircuit.remove(commandKey);
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
     private HttpServerRequest httpServerReq;
@@ -34,8 +43,8 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
-        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou"))
-            .andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path().toLowerCase())));
+        super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou")).
+                andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path().toLowerCase())));
         this.httpServerReq = httpServerReq;
         this.httpClient = httpClient;
     }
@@ -69,20 +78,24 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         //对于断路器被配置为强制打开的uri,无需logger.error
                         LOGGER.warn("Circuit Breaker open for uri", httpServerReq.path());
                     } else {
-                        LOGGER.error("Request is rejected by Hystrix:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}",
-                                HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase(),
-                                HystrixForwardReqCommand.this.isResponseShortCircuited(),
-                                HystrixForwardReqCommand.this.isResponseSemaphoreRejected());
 
-                        RejectReqEvent event = new RejectReqEvent();
-                        event.setUri(HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase());
-                        event.setTime(Utils.getCurrentTime());
-                        event.setSample(new Sample());
-                        event.setRuleName(HystrixForwardReqCommand.this.isResponseSemaphoreRejected() ? "MaxConcurrent" : "CircuitBreaker");
-                        event.setFilterName("Hystrix");
+                        if(HystrixForwardReqCommand.this.isResponseShortCircuited() || HystrixForwardReqCommand.this.isResponseSemaphoreRejected()){
 
-                        //被拦截请求发到决策引擎进行落地
-                        SpringContextHolder.getBean(KafkaClient.class).sendRejectReqEvent(event);
+                            LOGGER.error("Request is rejected by Hystrix:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}",
+                                    HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase(),
+                                    HystrixForwardReqCommand.this.isResponseShortCircuited(),
+                                    HystrixForwardReqCommand.this.isResponseSemaphoreRejected());
+
+                            RejectReqEvent event = new RejectReqEvent();
+                            event.setUri(HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase());
+                            event.setTime(Utils.getCurrentTime());
+                            event.setSample(new Sample());
+                            event.setRuleName(HystrixForwardReqCommand.this.isResponseSemaphoreRejected() ? "MaxConcurrent" : "CircuitBreaker");
+                            event.setFilterName("Hystrix");
+
+                            //被拦截请求发到决策引擎进行落地
+                            SpringContextHolder.getBean(KafkaClient.class).sendRejectReqEvent(event);
+                        }
                     }
                     if (!subscriber.isUnsubscribed()) {
                         HttpServerRequestHandler.fallback(httpServerReq,

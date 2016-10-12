@@ -8,14 +8,19 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.strategy.HystrixPlugins;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesCommandDefault;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesStrategy;
+import com.netflix.hystrix.strategy.properties.HystrixProperty;
 import com.ymatou.doorgod.apigateway.cache.Cache;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
+import com.ymatou.doorgod.apigateway.utils.BeanUtils;
 import com.ymatou.doorgod.apigateway.utils.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.lang.reflect.Field;
 
 /**
  * Hystrix动态配置实现
@@ -23,6 +28,8 @@ import javax.annotation.PostConstruct;
  */
 @Component
 public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy implements Cache {
+
+    private static Logger logger = LoggerFactory.getLogger(DynamicHystrixPropertiesStrategy.class);
 
     @Autowired
     private HystrixConfigCache hystrixConfigCache;
@@ -63,22 +70,15 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
 
         setter.withRequestLogEnabled(false);
 
-        setter.withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE);
-
         if ( config != null ) {
-            if ( config.getMaxConcurrentReqs() != null && config.getMaxConcurrentReqs() > 0 ) {
-                setter.withExecutionIsolationSemaphoreMaxConcurrentRequests(config.getMaxConcurrentReqs());
-            }
-            if (config.getForceCircuitBreakerClose() != null && config.getForceCircuitBreakerClose()) {
-                setter.withCircuitBreakerForceClosed(true);
-            }
-            if (config.getForceCircuitBreakerOpen() != null && config.getForceCircuitBreakerOpen()) {
-                setter.withCircuitBreakerForceOpen(true);
-            }
-            if (config.getErrorThresholdPercentageOfCircuitBreaker() != null && config.getErrorThresholdPercentageOfCircuitBreaker() > 0 ) {
-                setter.withCircuitBreakerErrorThresholdPercentage(config.getErrorThresholdPercentageOfCircuitBreaker());
-            }
 
+            setter.withExecutionIsolationSemaphoreMaxConcurrentRequests(config.getMaxConcurrentReqs());
+
+            setter.withCircuitBreakerForceOpen(config.getForceCircuitBreakerOpen());
+
+            setter.withCircuitBreakerForceClosed(config.getForceCircuitBreakerClose());
+
+            setter.withCircuitBreakerErrorThresholdPercentage(config.getErrorThresholdPercentageOfCircuitBreaker());
             //timeout属性已经在Vertx httpclient设定，Hystrix无需再设
         }
 
@@ -98,6 +98,89 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
                                 }
                             });
         }
-        commandKeyToProperties.invalidateAll();
+        commandKeyToProperties.asMap().forEach((hystrixCommandKey, hystrixCommandProperties) -> {
+            HystrixConfig config = hystrixConfigCache.locate(hystrixCommandKey.name());
+
+            if( null != config){
+
+                reloadCircuitBreakerForceOpen(config,hystrixCommandProperties);
+
+                reloadCircuitBreakerForceClosed(config,hystrixCommandProperties);
+
+                reloadCircuitBreakerErrorThresholdPercentage(config,hystrixCommandProperties);
+
+                reloadMaxConcurrentReqs(config,hystrixCommandProperties,hystrixCommandKey);
+            }
+        });
+    }
+
+    /**
+     * 重新设置 断路器强制打开属性
+     * @param config
+     * @param hystrixCommandProperties
+     */
+    private void reloadCircuitBreakerForceOpen(HystrixConfig config,HystrixCommandProperties hystrixCommandProperties){
+        if(!hystrixCommandProperties.circuitBreakerForceOpen().get().equals(config.getForceCircuitBreakerOpen())){
+            try {
+                BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerForceOpen",
+                        HystrixProperty.Factory.asProperty(config.getForceCircuitBreakerOpen()));
+            } catch (Exception e) {
+                logger.error("reload circuitBreakerForceOpen error",e);
+            }
+        }
+    }
+
+    /**
+     * 重新设置 断路器强制关闭属性
+     * @param config
+     * @param hystrixCommandProperties
+     */
+    private void reloadCircuitBreakerForceClosed(HystrixConfig config,HystrixCommandProperties hystrixCommandProperties){
+        if(!hystrixCommandProperties.circuitBreakerForceClosed().get().equals(config.getForceCircuitBreakerClose())){
+            try {
+                BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerForceClosed",
+                        HystrixProperty.Factory.asProperty(config.getForceCircuitBreakerClose()));
+            } catch (Exception e) {
+                logger.error("reload circuitBreakerForceOpen error",e);
+            }
+        }
+    }
+
+    /**
+     * 重新设置 断路器错误百分比
+     * @param config
+     * @param hystrixCommandProperties
+     */
+    private void reloadCircuitBreakerErrorThresholdPercentage(HystrixConfig config,HystrixCommandProperties hystrixCommandProperties){
+        if(!hystrixCommandProperties.circuitBreakerErrorThresholdPercentage().get()
+                .equals(config.getErrorThresholdPercentageOfCircuitBreaker())){
+            try {
+                BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerErrorThresholdPercentage",
+                        HystrixProperty.Factory.asProperty(config.getErrorThresholdPercentageOfCircuitBreaker()));
+            } catch (Exception e) {
+                logger.error("reload circuitBreakerForceOpen error",e);
+            }
+        }
+    }
+
+
+    /**
+     * 重新设置 最大并发量
+     * @param config
+     * @param hystrixCommandProperties
+     * @param hystrixCommandKey
+     */
+    private void reloadMaxConcurrentReqs(HystrixConfig config,HystrixCommandProperties hystrixCommandProperties,HystrixCommandKey hystrixCommandKey){
+        //处理 最大并发量
+        if (!hystrixCommandProperties.executionIsolationSemaphoreMaxConcurrentRequests().get()
+                .equals(config.getMaxConcurrentReqs())) {
+            try {
+                BeanUtils.forceSetProperty(hystrixCommandProperties,"executionIsolationSemaphoreMaxConcurrentRequests",
+                        HystrixProperty.Factory.asProperty(config.getMaxConcurrentReqs()));
+            } catch (Exception e) {
+                logger.error("reload circuitBreakerForceOpen error",e);
+            }
+            HystrixForwardReqCommand.removeCommandKey(hystrixCommandKey.name());
+        }
     }
 }

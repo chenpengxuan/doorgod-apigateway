@@ -73,6 +73,8 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                     targetServer.getHost(),
                     httpServerReq.uri(),
                     targetResp -> {
+                        httpServerReq.response().setChunked(true);
+                        httpServerReq.response().setStatusCode(targetResp.statusCode());
                         httpServerReq.response().headers().setAll(targetResp.headers());
                         targetResp.handler(data -> {
                             httpServerReq.response().write(data);
@@ -85,10 +87,13 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         });
                         targetResp.endHandler((v) -> {
                             httpServerReq.response().end();
-                            onCompleted();
+                            if (targetResp.statusCode() >= 400) {
+                                onError(new Exception(targetResp.statusCode() + " :" + targetResp.statusMessage()));
+                            }else {
+                                onCompleted();
+                            }
                         });
                     });
-
 
             forwardClientReq.setChunked(true);
             forwardClientReq.headers().setAll(httpServerReq.headers());
@@ -134,6 +139,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     public static void fallback( HttpServerRequest httpServerReq, String reason ) {
 
+        if(httpServerReq.response().ended()){
+           return;
+        }
         HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
 
         HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
