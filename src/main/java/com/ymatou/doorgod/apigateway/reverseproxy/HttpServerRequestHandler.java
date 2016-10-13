@@ -89,11 +89,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         });
                         targetResp.endHandler((v) -> {
                             httpServerReq.response().end();
-                            if (targetResp.statusCode() >= 400) {
-                                onError(new Exception(targetResp.statusCode() + " :" + targetResp.statusMessage()));
-                            }else {
-                                onCompleted();
-                            }
+                            onCompleted();
                         });
                     });
 
