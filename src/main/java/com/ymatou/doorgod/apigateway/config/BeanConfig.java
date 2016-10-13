@@ -1,6 +1,5 @@
 package com.ymatou.doorgod.apigateway.config;
 
-import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,10 +26,10 @@ public class BeanConfig {
     }
 
 
-    @Bean
-    public ServletRegistrationBean servletRegistrationBean( ) {
-        return new ServletRegistrationBean(new HystrixMetricsStreamServlet(),"/hystrix.stream");
-    }
+//    @Bean
+//    public ServletRegistrationBean servletRegistrationBean( ) {
+//        return new ServletRegistrationBean(new HystrixMetricsStreamServlet(),"/hystrix.stream");
+//    }
 
 
     @Bean

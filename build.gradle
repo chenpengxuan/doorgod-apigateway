@@ -52,7 +52,7 @@ dependencies {
 	compile 'com.ymatou.disconf:disconf-client:2.6.35'
 	compile 'org.slf4j:slf4j-api:1.7.21'
 	compile 'ch.qos.logback:logback-classic:1.1.7'
-	compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.5.5'
+	compile 'com.netflix.hystrix:hystrix-core:1.5.6'
 	compile 'org.codehaus.groovy:groovy-all:2.4.7'
 	compile 'org.apache.kafka:kafka_2.11:0.10.0.1'
 	compile 'com.alibaba:fastjson:1.2.17'

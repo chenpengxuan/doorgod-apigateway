@@ -64,7 +64,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
 
     public static HystrixCommandProperties.Setter build(HystrixConfig config ) {
         HystrixCommandProperties.Setter setter = HystrixCommandProperties.Setter();
-
+        setter.withMetricsRollingPercentileEnabled(false);
         setter.withExecutionTimeoutEnabled(false);
         setter.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE);
 

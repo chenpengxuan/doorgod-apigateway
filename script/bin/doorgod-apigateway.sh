@@ -6,9 +6,9 @@ APP_NAME="apigateway.doorgod.iapi.ymatou.com"
 MAIN_CLASS="com.ymatou.doorgod.apigateway.ApigatewayApplication"
 CLASS_PATH="lib/*:conf"
 JAVA_OPTS=" -server \
-            -Xms1024m -Xmx1024m \
+            -Xms4096m -Xmx4096m \
             -XX:MaxMetaspaceSize=512m \
-            -Xmn500M \
+            -Xmn1500M \
             -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled \
             -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=75 \
             -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark \
