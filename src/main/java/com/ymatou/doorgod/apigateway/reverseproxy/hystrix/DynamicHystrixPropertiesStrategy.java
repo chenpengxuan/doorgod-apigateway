@@ -64,13 +64,15 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
 
     public static HystrixCommandProperties.Setter build(HystrixConfig config ) {
         HystrixCommandProperties.Setter setter = HystrixCommandProperties.Setter();
-        setter.withMetricsRollingPercentileEnabled(false);
+        setter.withMetricsRollingPercentileEnabled(true);
+
+        //vert.x自身有超时
         setter.withExecutionTimeoutEnabled(false);
         setter.withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE);
 
         setter.withRequestLogEnabled(false);
         setter.withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE);
-        setter.withCircuitBreakerEnabled(false);
+        setter.withCircuitBreakerEnabled(true);
 
         if ( config != null ) {
 
