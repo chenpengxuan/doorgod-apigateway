@@ -157,7 +157,7 @@ public class KafkaClient {
             producerExecutor.submit(() -> {
                 producer.send(record, (metadata, exception) -> {
                     if (exception != null) {
-                        LOGGER.error("Failed to send Kafka message:{}", record);
+                        LOGGER.error("Failed to send Kafka message:{}", record, exception);
                     }
                 });
             });
