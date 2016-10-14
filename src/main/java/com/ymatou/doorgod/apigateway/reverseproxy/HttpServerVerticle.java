@@ -1,7 +1,9 @@
 package com.ymatou.doorgod.apigateway.reverseproxy;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixForwardReqCommand;
 import io.vertx.core.AbstractVerticle;
@@ -39,18 +41,24 @@ public class HttpServerVerticle extends AbstractVerticle {
 
         buildHttpClient(appConfig);
 
-        registerStartWarmUpHandler(appConfig);
-
-        if (appConfig.isEnableHystrix()) {
-            server.requestHandler(httpServerReq -> {
-                HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(httpServerReq, httpClient);
-                cmd.observe();
-            });
-
-        } else {
-            HttpServerRequestHandler handler = new HttpServerRequestHandler(null, httpClient);
-            server.requestHandler(handler);
+        if (StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
+            registerStartWarmUpHandler(appConfig);
         }
+
+        HystrixConfigCache hystrixConfigCache = SpringContextHolder.getBean(HystrixConfigCache.class);
+
+
+        server.requestHandler(httpServerReq -> {
+            HystrixConfig hystrixConfig = hystrixConfigCache.locate(httpServerReq.path().toLowerCase());
+            if (hystrixConfig != null) {
+                HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(httpServerReq, httpClient, hystrixConfig.getUri());
+                cmd.observe();
+            } else {
+                HttpServerRequestHandler handler = new HttpServerRequestHandler(null, httpClient);
+                handler.handle(httpServerReq);
+            }
+        });
+
 
         server.listen(appConfig.getVertxServerPort());
     }
@@ -63,7 +71,6 @@ public class HttpServerVerticle extends AbstractVerticle {
     private void buildHttpClient(AppConfig appConfig) throws Exception {
 
         HttpClientOptions httpClientOptions = new HttpClientOptions();
-        httpClientOptions.setConnectTimeout(1000);
         httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
         httpClientOptions.setLogActivity(false);
 
@@ -72,44 +79,36 @@ public class HttpServerVerticle extends AbstractVerticle {
     }
 
 
-    private void registerStartWarmUpHandler( AppConfig appConfig ) {
+    private void registerStartWarmUpHandler(AppConfig appConfig) {
         //用于系统启动时，预创建到目标服务器（譬如Nginx）的连接
         vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_START_WARMUP_TARGET_SERVER, event -> {
-            Thread thread = Thread.currentThread();
-            if (StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
 
-                TargetServer ts = VertxVerticleDeployer.targetServer;
 
-                LOGGER.info("warmming up target server {} for vertice {}...", ts, this);
+            TargetServer ts = VertxVerticleDeployer.targetServer;
 
-                //预加载到目标服务器，譬如Nginx的连接
-                CountDownLatch latch = new CountDownLatch(appConfig.getInitHttpConnections());
-                for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
-                    HttpClientRequest req = httpClient.get(ts.getPort(), ts.getHost(),
-                            appConfig.getTargetServerWarmupUri().trim(),
-                            targetResp -> {
-                                targetResp.endHandler(v -> {
-                                    latch.countDown();
-                                    if ( latch.getCount() <= 0 ) {
-                                        LOGGER.info("Succeeded in warmming up target server {}. verticle:{}", ts, this);
-                                        vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
-                                    }
-                                });
-                                targetResp.exceptionHandler(throwable -> {
-                                    LOGGER.error("Failed to warm up target server.", throwable);
-                                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
-                                });
+            LOGGER.info("warmming up target server {} for vertice {}...", ts, this);
+
+            //预加载到目标服务器，譬如Nginx的连接
+            for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
+                HttpClientRequest req = httpClient.get(ts.getPort(), ts.getHost(),
+                        appConfig.getTargetServerWarmupUri().trim(),
+                        targetResp -> {
+                            targetResp.endHandler(v -> {
+                                LOGGER.info("Succeeded in warmming up one connection of target server {}. verticle:{}", ts, this);
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
                             });
-                    req.exceptionHandler(throwable -> {
-                        LOGGER.error("Failed to warm up target server.", throwable);
-                        vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
-                    });
-                    req.end();
-                }
-            } else {
-                LOGGER.warn("Target server warm up uri not set");
-                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
+                            targetResp.exceptionHandler(throwable -> {
+                                LOGGER.error("Failed to warm up target server.", throwable);
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
+                            });
+                        });
+                req.exceptionHandler(throwable -> {
+                    LOGGER.error("Failed to warm up target server.", throwable);
+                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
+                });
+                req.end();
             }
+
         });
     }
 

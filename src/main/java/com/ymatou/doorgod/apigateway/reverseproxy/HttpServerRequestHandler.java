@@ -2,8 +2,10 @@ package com.ymatou.doorgod.apigateway.reverseproxy;
 
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
+import com.ymatou.doorgod.apigateway.cache.UriConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
+import com.ymatou.doorgod.apigateway.model.UriConfig;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
@@ -32,7 +34,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private TargetServer targetServer;
 
-    public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient ) {
+    public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient) {
         this.subscriber = subscriber;
         this.httpClient = httpClient;
         this.vertx = VertxVerticleDeployer.vertx;
@@ -47,24 +49,19 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
 
-        if (appConfig.isEnableHystrix()) {
 
-            //通过Hystrix监控FiltersExecutor性能及TPS等
-            boolean[] passFilters = new boolean[]{false};
-            HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
-            filtersExecutorCommand.toObservable().subscribe(passed -> {
-                passFilters[0] = passed;
-            });
+        //通过Hystrix监控FiltersExecutor性能及TPS等
+        boolean[] passFilters = new boolean[]{false};
+        HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
+        filtersExecutorCommand.toObservable().subscribe(passed -> {
+            passFilters[0] = passed;
+        });
 
-            process(httpServerReq, passFilters[0]);
-        } else {
-            boolean passed = filtersExecutor.pass(httpServerReq);
-            process(httpServerReq, passed);
-        }
+        process(httpServerReq, passFilters[0]);
 
     }
 
-    private void  process( HttpServerRequest httpServerReq, boolean passed ) {
+    private void process(HttpServerRequest httpServerReq, boolean passed) {
         if (!passed) {
             fallback(httpServerReq, "Refused by filters");
             onCompleted();
@@ -75,7 +72,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                     targetResp -> {
                         httpServerReq.response().setStatusCode(targetResp.statusCode());
                         httpServerReq.response().headers().setAll(targetResp.headers());
-                        if ( "Chunked".equalsIgnoreCase(httpServerReq.response().headers().get("Transfer-Encoding"))){
+                        if ("Chunked".equalsIgnoreCase(httpServerReq.response().headers().get("Transfer-Encoding"))) {
                             httpServerReq.response().setChunked(true);
                         }
                         targetResp.handler(data -> {
@@ -85,7 +82,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                             LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
                             httpServerReq.response().setStatusCode(500);
                             httpServerReq.response().end("...ApiGateway: failed to read target service response");
-                            onError( throwable );
+                            onError(throwable);
                         });
                         targetResp.endHandler((v) -> {
                             httpServerReq.response().end();
@@ -99,9 +96,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             /**
              * 对于明确设置了超时时间的uri,设定超时时间
              */
-            HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
-            HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
-            if ( config != null && config.getTimeout() != null && config.getTimeout() > 0 ) {
+            UriConfigCache configCache = SpringContextHolder.getBean(UriConfigCache.class);
+            UriConfig config = configCache.locate(httpServerReq.path().toLowerCase());
+            if (config != null && config.getTimeout() > 0) {
                 forwardClientReq.setTimeout(config.getTimeout());
             }
 
@@ -135,39 +132,39 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
 
-    public static void fallback( HttpServerRequest httpServerReq, String reason ) {
+    public static void fallback(HttpServerRequest httpServerReq, String reason) {
 
-        if(httpServerReq.response().ended()){
-           return;
+        if (httpServerReq.response().ended()) {
+            return;
         }
         HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
 
         HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
 
         if (config != null && config.getFallbackStatusCode() != null
-                && config.getFallbackStatusCode() > 0 ) {
+                && config.getFallbackStatusCode() > 0) {
             httpServerReq.response().setStatusCode(config.getFallbackStatusCode());
-            if ( config.getFallbackBody() != null ) {
+            if (config.getFallbackBody() != null) {
                 httpServerReq.response().end(config.getFallbackBody());
             } else {
                 httpServerReq.response().end();
             }
         } else {
             httpServerReq.response().setStatusCode(403);
-            httpServerReq.response().end("ApiGateway: request is forbidden." + reason );
+            httpServerReq.response().end("ApiGateway: request is forbidden." + reason);
         }
 
     }
 
-    public void onCompleted( ) {
-        if ( subscriber != null ) {
+    public void onCompleted() {
+        if (subscriber != null) {
             subscriber.onCompleted();
         }
     }
 
-    public void onError( Throwable t ) {
-        if ( subscriber != null ) {
-            subscriber.onError( t );
+    public void onError(Throwable t) {
+        if (subscriber != null) {
+            subscriber.onError(t);
         }
     }
 }

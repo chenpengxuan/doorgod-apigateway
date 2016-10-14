@@ -46,7 +46,7 @@ public class VertxVerticleDeployer {
 
     public static Vertx vertx = null;
 
-    public static boolean success = false;
+    public static volatile boolean success = false;
 
     @Autowired
     private MySqlClient mySqlClient;
@@ -62,18 +62,14 @@ public class VertxVerticleDeployer {
         VertxOptions vertxOptions = new VertxOptions();
         vertx = Vertx.vertx(vertxOptions);
 
-        try {
-            targetServer = mySqlClient.locateTargetServer();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        targetServer = mySqlClient.locateTargetServer();
 
         CountDownLatch latch = new CountDownLatch(1);
 
         Throwable[] throwables = new Throwable[]{null};
 
         vertx.deployVerticle(HttpServerVerticle.class.getName(),
-                new DeploymentOptions().setInstances(VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE),
+                new DeploymentOptions().setInstances(VERTICLE_INSTANCES),
                 result -> {
                     if (result.failed()) {
                         throwables[0] = result.cause();
@@ -86,30 +82,33 @@ public class VertxVerticleDeployer {
 
 
         if (throwables[0] != null) {
-            throw new RuntimeException("Failed to startup ApiGateway", throwables[0]);
+            throw new RuntimeException("Failed to deploy vertx verticles", throwables[0]);
         }
 
-        boolean[] warmUpSuccess = new boolean[]{true};
+        if ( StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
+            boolean[] warmUpSuccess = new boolean[]{false};
 
-        CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES);
+            CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
 
-        vertx.eventBus().consumer(ADDRESS_END_WARMUP_TARGET_SERVER, event -> {
-            if ( !event.body().toString().equals(WARM_UP_SUCCESS_MSG)) {
-                warmUpSuccess[0] = false;
+            vertx.eventBus().consumer(ADDRESS_END_WARMUP_TARGET_SERVER, event -> {
+                if (event.body().toString().equals(WARM_UP_SUCCESS_MSG)) {
+                    //有一个连接建立成功，即表示warmup成功
+                    warmUpSuccess[0] = true;
+                }
+                warmupLatch.countDown();
+            });
+
+            //通知各个Verticle去预创建到TargetServer的连接
+            vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
+
+            //等待各个Verticle预创建连接完毕
+            warmupLatch.await();
+
+            if (!warmUpSuccess[0]) {
+                throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
             }
-            warmupLatch.countDown();
-        });
 
-        //通知各个Verticle去预创建到TargetServer的连接
-        vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
-
-        //等待各个Verticle预创建连接完毕
-        warmupLatch.await();
-
-        if (!warmUpSuccess[0]) {
-            throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
         }
-
         success = true;
         LOGGER.info("Succeed in startup ApiGateway");
     }

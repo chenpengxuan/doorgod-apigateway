@@ -39,6 +39,9 @@ public class CacheReloader implements KafkaRecordListener {
     private KeyAliasCache keyAliasCache;
 
     @Autowired
+    private UriConfigCache uriConfigCache;
+
+    @Autowired
     private DynamicHystrixPropertiesStrategy dynamicHystrixPropertiesStrategy;
 
 
@@ -60,6 +63,9 @@ public class CacheReloader implements KafkaRecordListener {
                 case Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT:
                     hystrixConfigCache.reload();
                     dynamicHystrixPropertiesStrategy.reload( );
+                    break;
+                case Constants.TOPIC_UPDATE_URI_CONFIG_EVENT:
+                    uriConfigCache.reload();
                     break;
                 default:
                     LOGGER.error("Receive unknow kafka message:{}", record);

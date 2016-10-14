@@ -25,26 +25,20 @@ import rx.Subscriber;
  */
 public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
-    /**
-     * 解决信号量 最大并发动态更新
-     * @param commandKey
-     */
-    public static void removeCommandKey(String commandKey){
-        executionSemaphorePerCircuit.remove(commandKey);
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
     private HttpServerRequest httpServerReq;
 
     private HttpClient httpClient;
 
-    public HystrixForwardReqCommand(HttpServerRequest httpServerReq, HttpClient httpClient ) {
+    private String key;
+
+    public HystrixForwardReqCommand(HttpServerRequest httpServerReq, HttpClient httpClient, String key ) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou")).
-                andCommandKey(MyHystrixCommandKeyFactory.asKey(httpServerReq.path().toLowerCase())));
+                andCommandKey(MyHystrixCommandKeyFactory.asKey(key)));
         this.httpServerReq = httpServerReq;
         this.httpClient = httpClient;
     }
@@ -109,6 +103,15 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                 }
             }
         } );
+    }
+
+
+    /**
+     * 解决信号量 最大并发动态更新
+     * @param commandKey
+     */
+    public static void removeCommandKey(String commandKey){
+        executionSemaphorePerCircuit.remove(commandKey);
     }
 
 }

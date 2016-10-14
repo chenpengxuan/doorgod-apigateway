@@ -174,7 +174,7 @@ public class MySqlClient {
 
                                     try {
                                         HystrixConfig config = new HystrixConfig();
-                                        config.setUri(row.getString("uri"));
+                                        config.setUri(row.getString("uri").toLowerCase());
                                         config.setErrorThresholdPercentageOfCircuitBreaker(
                                                 replaceNullAndZeroWithDefault(row.getInteger("circuit_breaker_error_threshold"),
                                                         HystrixConfig.DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER));
@@ -183,8 +183,6 @@ public class MySqlClient {
                                         config.setForceCircuitBreakerClose(convertBool(row.getInteger("circuit_breaker_force_close")));
                                         config.setForceCircuitBreakerOpen(convertBool(row.getInteger("circuit_breaker_force_open")));
                                         config.setMaxConcurrentReqs(replaceNullAndZeroWithDefault(row.getInteger("max_concurrent_reqs"), Integer.MAX_VALUE));
-                                        config.setTimeout(row.getInteger("timeout", -1));
-
 
                                         result.add(config);
 
@@ -219,6 +217,55 @@ public class MySqlClient {
         return result;
     }
 
+    public List<UriConfig> loadUriConfigs() throws Exception {
+        List<UriConfig> result = new ArrayList<UriConfig>( );
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().query("select timeout, uri from uri_config where status='ENABLE' ",
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(row -> {
+
+                                    try {
+                                        UriConfig config = new UriConfig();
+                                        config.setUri(row.getString("uri").toLowerCase());
+                                        config.setTimeout(row.getInteger("timeout"));
+
+                                        result.add(config);
+
+                                    } catch (Exception e) {
+                                        LOGGER.error("Exception in loding uri config from mysql", e);
+                                    }
+
+                                });
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                            }
+                            connEvent.result().close();
+                            latch.countDown();
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load uri config", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
 
     public Set<KeyAlias> loadKeyAliases() throws Exception {
         Set<KeyAlias> result = new HashSet<KeyAlias>( );
@@ -233,7 +280,7 @@ public class MySqlClient {
 
                                     try {
                                         KeyAlias alias = new KeyAlias();
-                                        alias.setUri(row.getString("uri"));
+                                        alias.setUri(row.getString("uri").toLowerCase());
                                         alias.setKey(row.getString("origin_key_name"));
                                         alias.setAlias(row.getString("alias"));
 

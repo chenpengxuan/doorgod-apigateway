@@ -28,6 +28,8 @@ public class ApigatewayApplication {
             context.getBean(VertxVerticleDeployer.class).deployVerticles();
         } catch ( Exception e ) {
             LOGGER.error("Failed to startup", e);
+            //Vertx verticles部署失败，拒绝应用启动
+            System.exit(0);
         }
 
     }

@@ -40,9 +40,6 @@ public class AppConfig {
     @Value("${mySqlDbName}")
     private String mySqlDbName;
 
-    @Value("${enableHystrix}")
-    private boolean enableHystrix;
-
     @Value("${mongodbName}")
     private String mongodbName;
 
@@ -127,14 +124,6 @@ public class AppConfig {
 
     public void setInitHttpConnections(int initHttpConnections) {
         this.initHttpConnections = initHttpConnections;
-    }
-
-    public boolean isEnableHystrix() {
-        return enableHystrix;
-    }
-
-    public void setEnableHystrix(boolean enableHystrix) {
-        this.enableHystrix = enableHystrix;
     }
 
     public String getMongodbName() {

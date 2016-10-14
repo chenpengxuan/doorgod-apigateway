@@ -3,7 +3,7 @@ package com.ymatou.doorgod.apigateway.model;
 /**
  * Created by tuwenjie on 2016/9/8.
  */
-public class HystrixConfig extends PrintFriendliness {
+public class HystrixConfig extends PrintFriendliness implements Comparable<HystrixConfig> {
 
     public static final int DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER = 50;
 
@@ -13,8 +13,6 @@ public class HystrixConfig extends PrintFriendliness {
     //最大并发请求数
     private Integer maxConcurrentReqs = -1;
 
-    //超时时间，以毫秒计
-    private Integer timeout = -1;
 
     //触发断路所需要的最小错误百分比
     private Integer errorThresholdPercentageOfCircuitBreaker = DEFAULT_ERROR_THRESHOLD_PERCENTAGE_CIRCUIT_BREAKER;
@@ -50,14 +48,6 @@ public class HystrixConfig extends PrintFriendliness {
 
     public void setMaxConcurrentReqs(Integer maxConcurrentReqs) {
         this.maxConcurrentReqs = maxConcurrentReqs;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
     }
 
     public Integer getErrorThresholdPercentageOfCircuitBreaker() {
@@ -98,5 +88,15 @@ public class HystrixConfig extends PrintFriendliness {
 
     public void setFallbackBody(String fallbackBody) {
         this.fallbackBody = fallbackBody;
+    }
+
+    /**
+     * uri越长，越靠前匹配
+     * @param o
+     * @return
+     */
+    @Override
+    public int compareTo(HystrixConfig o) {
+        return o.uri.length() - this.uri.length();
     }
 }

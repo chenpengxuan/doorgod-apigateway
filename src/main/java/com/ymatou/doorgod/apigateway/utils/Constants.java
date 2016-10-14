@@ -18,6 +18,8 @@ public interface Constants {
 
     public static final String TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT = "doorgod.updateHystrixConfigEvent";
 
+    public static final String TOPIC_UPDATE_URI_CONFIG_EVENT = "doorgod.updateUriConfigEvent";
+
     public static final String TOPIC_UPDATE_KEY_ALIAS_EVENT = "doorgod.updateKeyAliasEvent";
 
     public static final String COLLECTION_LIMIT_TIMES_RULE_OFFENDER = "LimitTimesRuleOffender";
