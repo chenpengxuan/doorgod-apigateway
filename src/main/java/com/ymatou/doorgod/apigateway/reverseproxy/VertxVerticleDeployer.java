@@ -108,6 +108,8 @@ public class VertxVerticleDeployer {
                 throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
             }
 
+        } else {
+            LOGGER.warn("Targe server warmup url not set");
         }
         success = true;
         LOGGER.info("Succeed in startup ApiGateway");
