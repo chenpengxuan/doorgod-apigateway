@@ -24,6 +24,12 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
      */
     private Set<String> applicableUris = new HashSet<String>( );
 
+    /**
+     * 是否是观察模式。
+     * 观察模式:试运行，观察数据，但不真正拦截
+     */
+    private boolean observerMode;
+
     public String getName() {
         return name;
     }
@@ -47,6 +53,14 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
 
     public void setApplicableUris(Set<String> applicableUris) {
         this.applicableUris = applicableUris;
+    }
+
+    public boolean isObserverMode() {
+        return observerMode;
+    }
+
+    public void setObserverMode(boolean observerMode) {
+        this.observerMode = observerMode;
     }
 
     @Override

@@ -46,7 +46,7 @@ public class MySqlClient {
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
             if (connEvent.succeeded()) {
-                connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris from rule where status='ENABLE' ",
+                connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris, observe_mode from rule where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
                                 queryEvent.result().getRows().stream().forEach(row -> {
@@ -62,6 +62,7 @@ public class MySqlClient {
                                             rule.setTimesCap(row.getLong("times_cap"));
                                             rule.setName(row.getString("name"));
                                             rule.setOrder(row.getInteger("order"));
+                                            rule.setObserverMode(convertBool(row.getInteger("observe_mode")));
                                             rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
                                             result.add(rule);
 
@@ -71,6 +72,7 @@ public class MySqlClient {
                                             rule.setOrder(row.getInteger("order"));
                                             rule.setName(row.getString("name"));
                                             rule.setDimensionKeys(Utils.splitByComma(row.getString("keys")));
+                                            rule.setObserverMode(convertBool(row.getInteger("observe_mode")));
                                             rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
                                             result.add(rule);
 

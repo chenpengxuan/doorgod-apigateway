@@ -40,9 +40,6 @@ public class ApigatewayApplicationTests extends BaseTest {
 
 			}
 		};
-
-
-
 	}
 
 	@Test
@@ -50,5 +47,4 @@ public class ApigatewayApplicationTests extends BaseTest {
 		vertxVerticleDeployer.deployVerticles();
 		System.in.read();
 	}
-
 }

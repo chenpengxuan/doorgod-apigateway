@@ -27,10 +27,12 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
         List<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.path().toLowerCase());
 
         for ( BlacklistRule rule : rules ) {
-            context.ruleName = rule.getName();
-            Sample sample = context.sample.narrow(rule.getDimensionKeys());
-            if ( offenderCache.isInBlacklist(rule.getName(), sample)) {
-                return false;
+            if ( !rule.isObserverMode()) {
+                context.ruleName = rule.getName();
+                Sample sample = context.sample.narrow(rule.getDimensionKeys());
+                if (offenderCache.isInBlacklist(rule.getName(), sample)) {
+                    return false;
+                }
             }
         }
 

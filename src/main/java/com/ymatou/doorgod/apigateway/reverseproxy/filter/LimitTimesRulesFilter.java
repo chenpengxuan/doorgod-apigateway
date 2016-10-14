@@ -26,12 +26,14 @@ public class LimitTimesRulesFilter extends AbstractPreFilter {
     @Override
     protected boolean passable(HttpServerRequest req, FilterContext context) {
         for (LimitTimesRule rule : ruleCache.applicableLimitTimesRules(req.path().toLowerCase())) {
-            context.ruleName = rule.getName();
-            Sample sample = context.sample.narrow(
-                    CollectionUtils.isEmpty(rule.getGroupByKeys()) ? rule.getDimensionKeys() : rule.getGroupByKeys());
-            Date releaseDate = offenderCache.locateReleaseDate(rule.getName(), sample);
-            if ( releaseDate != null && releaseDate.compareTo(new Date( )) >= 0 ) {
-                return false;
+            if ( !rule.isObserverMode()) {
+                context.ruleName = rule.getName();
+                Sample sample = context.sample.narrow(
+                        CollectionUtils.isEmpty(rule.getGroupByKeys()) ? rule.getDimensionKeys() : rule.getGroupByKeys());
+                Date releaseDate = offenderCache.locateReleaseDate(rule.getName(), sample);
+                if (releaseDate != null && releaseDate.compareTo(new Date()) >= 0) {
+                    return false;
+                }
             }
         }
 
