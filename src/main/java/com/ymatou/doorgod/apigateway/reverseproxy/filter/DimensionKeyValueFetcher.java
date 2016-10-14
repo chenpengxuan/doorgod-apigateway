@@ -35,7 +35,7 @@ public class DimensionKeyValueFetcher {
                 key = alias;
             }
 
-            //TODO: make sure case insensitive
+
             String value = httpReq.getParam(key);
             if ( value == null ) {
                 value = httpReq.headers().get(key);
