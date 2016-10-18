@@ -101,6 +101,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                         httpServerReq.response().headers().setAll(targetResp.headers());
 
+                        if ( !httpServerReq.response().headers().contains("Content-Length")) {
+                            httpServerReq.response().setChunked(true);
+                        }
+
                         targetResp.handler(data -> {
                             httpServerReq.response().write(data);
                         });
@@ -212,7 +216,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         StatisticItem item = extract(req);
 
-        Constants.ACCESS_LOGGER.info("Proccessed:{}, consumed:{}(ms), statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
+        Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
                 "hitRule:{}, origStatusCode:{}, filterConsumed:{}",
                  item.getUri(), item.getConsumedTime(), item.getStatusCode(),
                 item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(), item.getOrigStatusCode(), item.getFilterConsumedTime());
