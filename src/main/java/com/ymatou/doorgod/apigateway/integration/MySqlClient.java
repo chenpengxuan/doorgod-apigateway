@@ -172,7 +172,7 @@ public class MySqlClient {
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
             if (connEvent.succeeded()) {
-                connEvent.result().query("select max_concurrent_reqs, timeout,circuit_breaker_force_open, circuit_breaker_force_close, circuit_breaker_error_threshold, uri, fallback_status_code, fallback_body from hystrix_config where status='ENABLE' ",
+                connEvent.result().query("select max_concurrent_reqs, circuit_breaker_force_open, circuit_breaker_force_close, circuit_breaker_error_threshold, uri, fallback_status_code, fallback_body from hystrix_config where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
                                 queryEvent.result().getRows().stream().forEach(row -> {
