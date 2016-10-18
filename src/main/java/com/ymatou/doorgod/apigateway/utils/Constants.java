@@ -18,8 +18,6 @@ public interface Constants {
 
     public static final String RULE_TYPE_NAME_BLACKLIST_RULE = "BlacklistRule";
 
-    public static final String TOPIC_REJECT_REQ_EVENT = "doorgod.rejectReqEvent";
-
     public static final String TOPIC_STATISTIC_SAMPLE_EVENT = "doorgod.statisticSampleEvent";
 
     public static final String TOPIC_UPDATE_OFFENDER_EVENT = "doorgod.updateOffenderEvent";
@@ -31,6 +29,8 @@ public interface Constants {
     public static final String TOPIC_UPDATE_URI_CONFIG_EVENT = "doorgod.updateUriConfigEvent";
 
     public static final String TOPIC_UPDATE_KEY_ALIAS_EVENT = "doorgod.updateKeyAliasEvent";
+
+    public static final String TOPIC_UPDATE_URI_PATTERN_EVENT = "doorgod.updateUriPatternEvent";
 
     public static final String COLLECTION_LIMIT_TIMES_RULE_OFFENDER = "LimitTimesRuleOffender";
 

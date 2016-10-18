@@ -271,6 +271,44 @@ public class MySqlClient {
         return result;
     }
 
+    public List<String> loadUriPatterns() throws Exception {
+        List<String> result = new ArrayList<String>( );
+        CountDownLatch latch = new CountDownLatch(1);
+        Throwable[] throwableInLoading = new Throwable[]{null};
+        client.getConnection(connEvent -> {
+            if (connEvent.succeeded()) {
+                connEvent.result().query("select uri_pattern from uri_pattern where status='ENABLE' ",
+                        queryEvent -> {
+                            if (queryEvent.succeeded()) {
+                                queryEvent.result().getRows().stream().forEach(row -> {
+                                    result.add(row.getString("uri_pattern").toLowerCase());
+                                });
+
+                            } else {
+                                throwableInLoading[0] = queryEvent.cause();
+                            }
+                            connEvent.result().close();
+                            latch.countDown();
+                        });
+            } else {
+                throwableInLoading[0] = connEvent.cause();
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            //just ignore
+        }
+
+        if (throwableInLoading[0] != null ) {
+            throw new Exception( "Failed to load uri pattern", throwableInLoading[0]);
+        }
+
+        return result;
+    }
+
 
     public Set<KeyAlias> loadKeyAliases() throws Exception {
         Set<KeyAlias> result = new HashSet<KeyAlias>( );

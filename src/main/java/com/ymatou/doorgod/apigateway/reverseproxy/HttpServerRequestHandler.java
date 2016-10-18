@@ -107,7 +107,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         targetResp.exceptionHandler(throwable -> {
                             LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
                             httpServerReq.response().setStatusCode(500);
-                            httpServerReq.response().write("...ApiGateway: failed to read target service response");
                             onError(httpServerReq, throwable);
                         });
                         targetResp.endHandler((v) -> {
@@ -133,7 +132,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
             forwardClientReq.exceptionHandler(throwable -> {
                 LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
-
+                httpServerReq.response().setChunked(true);
                 if (throwable instanceof java.net.ConnectException) {
                     httpServerReq.response().setStatusCode(408);
                     httpServerReq.response().write("ApiGateway:failed to connect target service");
@@ -155,6 +154,8 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
 
     public void fallback(HttpServerRequest httpServerReq, String reason) {
+
+        httpServerReq.response().setChunked(true);
 
         HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
 
