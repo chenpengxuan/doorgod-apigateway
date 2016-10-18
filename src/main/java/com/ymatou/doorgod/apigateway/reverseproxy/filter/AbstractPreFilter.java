@@ -1,22 +1,12 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
-import com.ymatou.doorgod.apigateway.integration.KafkaClient;
-import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
-import com.ymatou.doorgod.apigateway.utils.Utils;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import io.vertx.core.http.HttpServerRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by tuwenjie on 2016/9/9.
  */
 public abstract class AbstractPreFilter implements PreFilter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractPreFilter.class);
-
-    @Autowired
-    private KafkaClient kafkaClient;
 
     @Override
     public String name() {
@@ -29,17 +19,15 @@ public abstract class AbstractPreFilter implements PreFilter {
     public boolean pass(HttpServerRequest req, FilterContext context) {
         boolean result = passable( req, context );
         if ( !result ) {
-            LOGGER.warn("Request:{} is refused by Filter:{}. ruleName:{}, Sample:{}",
-                    req.uri(), name(), context.ruleName, context.sample);
+            context.rejected = true;
+            if ( context.rejectRuleName == null ) {
+                context.rejectRuleName = name( );
+            }
+            Constants.REJECT_LOGGER.warn("Request:{} is rejected by ruleName:{}, Sample:{}",
+                    req.uri(),
+                    context.rejectRuleName,
+                    context.sample);
 
-            RejectReqEvent event = new RejectReqEvent();
-            event.setFilterName(name());
-            event.setRuleName(context.ruleName);
-            event.setSample(context.sample);
-            event.setTime(Utils.getCurrentTime());
-            event.setUri(req.path().toLowerCase());
-
-            kafkaClient.sendRejectReqEvent(event);
         }
         return result;
     }

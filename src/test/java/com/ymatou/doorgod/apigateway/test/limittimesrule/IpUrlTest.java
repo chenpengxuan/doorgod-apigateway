@@ -7,7 +7,6 @@
 
 package com.ymatou.doorgod.apigateway.test.limittimesrule;
 
-import com.ymatou.doorgod.apigateway.test.utils.ExecutorUtils;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
@@ -17,7 +16,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 

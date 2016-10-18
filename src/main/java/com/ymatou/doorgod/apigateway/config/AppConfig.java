@@ -46,6 +46,9 @@ public class AppConfig {
     @Value("${mongodbUrl}")
     private String mongodbUrl;
 
+    @Value("${debugMode}")
+    private boolean debugMode;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -140,6 +143,14 @@ public class AppConfig {
 
     public void setMongodbUrl(String mongodbUrl) {
         this.mongodbUrl = mongodbUrl;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 }
 

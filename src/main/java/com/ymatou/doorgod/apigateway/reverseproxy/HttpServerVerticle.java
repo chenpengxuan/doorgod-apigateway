@@ -7,15 +7,10 @@ import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixForwardReqCommand;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by tuwenjie on 2016/9/5.
@@ -33,9 +28,13 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        LOGGER.debug("start vertx verticle: {}", this);
 
         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
+
+        HttpServerOptions options = new HttpServerOptions();
+        if ( appConfig.isDebugMode()) {
+            options.setLogActivity(true);
+        }
 
         HttpServer server = vertx.createHttpServer();
 
@@ -95,16 +94,16 @@ public class HttpServerVerticle extends AbstractVerticle {
                         targetResp -> {
                             targetResp.endHandler(v -> {
                                 LOGGER.info("Succeeded in warmming up one connection of target server {}. verticle:{}", ts, this);
-                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
                             });
                             targetResp.exceptionHandler(throwable -> {
                                 LOGGER.error("Failed to warm up target server.", throwable);
-                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, "fail");
                             });
                         });
                 req.exceptionHandler(throwable -> {
                     LOGGER.error("Failed to warm up target server.", throwable);
-                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_WARMUP_TARGET_SERVER, "fail");
+                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, "fail");
                 });
                 req.end();
             }

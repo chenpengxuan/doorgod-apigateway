@@ -2,7 +2,6 @@ package com.ymatou.doorgod.apigateway.integration;
 
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
 import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
@@ -19,8 +18,14 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by tuwenjie on 2016/9/9.
@@ -146,11 +151,6 @@ public class KafkaClient {
         send( record );
     }
 
-    public void sendRejectReqEvent(RejectReqEvent event) {
-        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT,
-                JSON.toJSONString(event));
-        send( record );
-    }
 
     private void send( ProducerRecord<String, String> record ) {
         try {

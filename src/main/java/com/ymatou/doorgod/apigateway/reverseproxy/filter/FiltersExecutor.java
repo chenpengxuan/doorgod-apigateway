@@ -4,8 +4,6 @@ import com.ymatou.doorgod.apigateway.cache.CustomizeFilterCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
 import com.ymatou.doorgod.apigateway.model.Sample;
-import com.ymatou.doorgod.apigateway.model.StatisticItem;
-import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,29 +38,29 @@ public class FiltersExecutor {
     @Autowired
     private CustomizeFilterCache customizeFilterCache;
 
-    public boolean pass(HttpServerRequest httpReq) {
-        boolean result = true;
+    public FilterContext pass(HttpServerRequest httpReq) {
+        boolean pass = true;
         Sample sample = null;
+        FilterContext context = new FilterContext();
         try {
-            FilterContext context = new FilterContext();
             Set<String> dimensionKeys = ruleCache.getAllDimensionKeys();
             sample = dimensionKeyValueFetcher.fetch(dimensionKeys, httpReq);
 
             context.sample = sample;
 
             //先执行黑名单校验
-            result = blacklistRulesFilter.pass(httpReq, context);
+            pass = blacklistRulesFilter.pass(httpReq, context);
 
-            if (result) {
+            if (pass) {
                 //再执行限次校验
-                result = limitTimesRulesFilter.pass(httpReq, context);
+                pass = limitTimesRulesFilter.pass(httpReq, context);
 
-                if (result) {
+                if (pass) {
 
                     //执行自定义Filters
                     for (PreFilter filter : customizeFilterCache.getCustomizeFilters()) {
-                        result = filter.pass(httpReq, context);
-                        if (!result) {
+                        pass = filter.pass(httpReq, context);
+                        if (!pass) {
                             break;
                         }
                     }
@@ -71,18 +69,10 @@ public class FiltersExecutor {
 
         } catch ( Exception e ) {
             LOGGER.error("Exception in doing filter for reverseproxy request:{}", httpReq.path(), e );
-            result = true;
+            context.rejected = false;
+            context.rejectRuleName = null;
         }
 
-        if ( result ) {
-            //只有通过的请求，才需要继续累计
-            StatisticItem item = new StatisticItem();
-            item.setSample(sample);
-            item.setUri(httpReq.path().toLowerCase());
-            item.setReqTime(Utils.getCurrentTime());
-            kafkaClient.sendStatisticItem(item);
-        }
-
-        return result;
+        return context;
     }
 }

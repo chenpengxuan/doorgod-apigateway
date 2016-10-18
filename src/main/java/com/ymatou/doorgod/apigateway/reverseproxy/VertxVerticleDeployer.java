@@ -6,24 +6,13 @@ import com.ymatou.doorgod.apigateway.model.TargetServer;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import java.util.List;
 
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -38,7 +27,7 @@ public class VertxVerticleDeployer {
 
     public static final String ADDRESS_START_WARMUP_TARGET_SERVER = "address-start-warmup";
 
-    public static final String ADDRESS_END_WARMUP_TARGET_SERVER = "address-end-warmup";
+    public static final String ADDRESS_END_ONE_WARMUP_CONNECTION = "address-end-one-warmup-conn";
 
     public static final String WARM_UP_SUCCESS_MSG = "ok";
 
@@ -90,7 +79,7 @@ public class VertxVerticleDeployer {
 
             CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
 
-            vertx.eventBus().consumer(ADDRESS_END_WARMUP_TARGET_SERVER, event -> {
+            vertx.eventBus().consumer(ADDRESS_END_ONE_WARMUP_CONNECTION, event -> {
                 if (event.body().toString().equals(WARM_UP_SUCCESS_MSG)) {
                     //有一个连接建立成功，即表示warmup成功
                     warmUpSuccess[0] = true;

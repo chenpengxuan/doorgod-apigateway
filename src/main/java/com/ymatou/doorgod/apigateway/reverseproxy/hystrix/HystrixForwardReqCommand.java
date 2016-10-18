@@ -1,18 +1,11 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
-import com.ymatou.doorgod.apigateway.integration.KafkaClient;
-import com.ymatou.doorgod.apigateway.model.RejectReqEvent;
-import com.ymatou.doorgod.apigateway.model.Sample;
-import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
-import com.ymatou.doorgod.apigateway.reverseproxy.VertxVerticleDeployer;
+import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
@@ -33,7 +26,9 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     private String key;
 
-    public HystrixForwardReqCommand(HttpServerRequest httpServerReq, HttpClient httpClient, String key ) {
+    private HttpServerRequestHandler handler;
+
+    public HystrixForwardReqCommand(HttpServerRequest httpServerReq, HttpClient httpClient, String key) {
         /**
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
@@ -51,6 +46,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                 try {
                     if (!subscriber.isUnsubscribed()) {
                         HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
+                        HystrixForwardReqCommand.this.handler = handler;
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {
@@ -58,7 +54,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                     subscriber.onError(e);
                 }
             }
-        } );
+        });
     }
 
     @Override
@@ -67,50 +63,44 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
                 try {
-                    if (Boolean.TRUE.equals(HystrixForwardReqCommand.this.getProperties().circuitBreakerForceOpen())
-                        && HystrixForwardReqCommand.this.isCircuitBreakerOpen()) {
-                        //对于断路器被配置为强制打开的uri,无需logger.error
-                        LOGGER.warn("Circuit Breaker open for uri", httpServerReq.path());
-                    } else {
+                    Constants.REJECT_LOGGER.warn("Request is rejected by Hystrix:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}. circuitBreakerForceOpen:{} ",
+                            HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase(),
+                            HystrixForwardReqCommand.this.isResponseShortCircuited(),
+                            HystrixForwardReqCommand.this.isResponseSemaphoreRejected(),
+                            HystrixForwardReqCommand.this.getProperties().circuitBreakerForceOpen());
 
-                        if(HystrixForwardReqCommand.this.isResponseShortCircuited() || HystrixForwardReqCommand.this.isResponseSemaphoreRejected()){
-
-                            LOGGER.error("Request is rejected by Hystrix:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}",
-                                    HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase(),
-                                    HystrixForwardReqCommand.this.isResponseShortCircuited(),
-                                    HystrixForwardReqCommand.this.isResponseSemaphoreRejected());
-
-                            RejectReqEvent event = new RejectReqEvent();
-                            event.setUri(HystrixForwardReqCommand.this.httpServerReq.path().toLowerCase());
-                            event.setTime(Utils.getCurrentTime());
-                            event.setSample(new Sample());
-                            event.setRuleName(HystrixForwardReqCommand.this.isResponseSemaphoreRejected() ? "MaxConcurrent" : "CircuitBreaker");
-                            event.setFilterName("Hystrix");
-
-                            //被拦截请求发到决策引擎进行落地
-                            SpringContextHolder.getBean(KafkaClient.class).sendRejectReqEvent(event);
-                        }
+                    httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REJECTED_BY_HYSTRIX), "true");
+                    if ( HystrixForwardReqCommand.this.isResponseShortCircuited()) {
+                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE), "circuitBreaker");
+                    } else if (HystrixForwardReqCommand.this.isResponseSemaphoreRejected()){
+                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE), "maxConcurrent");
                     }
+
                     if (!subscriber.isUnsubscribed()) {
-                        HttpServerRequestHandler.fallback(httpServerReq,
+                        handler.fallback(httpServerReq,
                                 //对外统一为被断路器拦截
-                                "Refused by CircuitBreaker");
+                                "Rejected by CircuitBreaker");
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {
+                    //should never goes here
                     LOGGER.error("Failed to do fallback process for req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
-                    subscriber.onError(e);
+                    httpServerReq.response().setStatusCode(500);
+                    httpServerReq.response().write("error in fallback");
+                    httpServerReq.response().end();
+                    subscriber.onCompleted();
                 }
             }
-        } );
+        });
     }
 
 
     /**
      * 解决信号量 最大并发动态更新
+     *
      * @param commandKey
      */
-    public static void removeCommandKey(String commandKey){
+    public static void removeCommandKey(String commandKey) {
         executionSemaphorePerCircuit.remove(commandKey);
     }
 

@@ -1,5 +1,8 @@
 package com.ymatou.doorgod.apigateway.test.utils;
 
+import com.alibaba.fastjson.JSON;
+import com.ymatou.doorgod.apigateway.model.Sample;
+import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import org.junit.Test;
 
@@ -9,6 +12,25 @@ import java.util.TreeSet;
  * Created by tuwenjie on 2016/9/13.
  */
 public class UtilsTest {
+
+    @Test
+    public void testJson( ) {
+        Sample sample = new Sample();
+        sample.addDimensionValue("ip", "129.19.90.99");
+
+        String json = JSON.toJSONString(sample);
+        System.out.println( json );
+
+        StatisticItem item = new StatisticItem();
+        item.setSample(sample);
+
+        System.out.println( JSON.toJSONString(item));
+
+        long milliSeconds = System.currentTimeMillis();
+        System.out.println( Utils.getTimeStr(milliSeconds));
+        System.out.println( Utils.getCurrentTimeStr());
+
+    }
 
     @Test
     public void testSplitByComma() {

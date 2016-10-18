@@ -4,16 +4,17 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Created by tuwenjie on 2016/9/18.
@@ -26,7 +27,7 @@ public class HystrixConfigCache implements Cache {
 
     private List<HystrixConfig> configs = new ArrayList<>();
 
-    private LoadingCache<String, HystrixConfig> uriToHystrixConfigCache;
+    private LoadingCache<String, Optional<HystrixConfig>> uriToHystrixConfigCache;
 
     @PostConstruct
     @Override
@@ -43,16 +44,16 @@ public class HystrixConfigCache implements Cache {
             uriToHystrixConfigCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, HystrixConfig>() {
-                                public HystrixConfig load(String uri) {
+                            new CacheLoader<String, Optional<HystrixConfig>>() {
+                                public Optional<HystrixConfig> load(String uri) {
                                     for ( HystrixConfig config : configs ) {
                                         if ( uri.toLowerCase().equals(config.getUri())
                                                 //或者正则表达式匹配
                                                 || Pattern.matches(config.getUri(), uri.toLowerCase())){
-                                            return config;
+                                            return Optional.of(config);
                                         }
                                     }
-                                    return null;
+                                    return Optional.empty();
                                 }
                             });
         }
@@ -64,6 +65,6 @@ public class HystrixConfigCache implements Cache {
 
 
     public HystrixConfig locate( String uri ) {
-        return uriToHystrixConfigCache.getUnchecked(uri);
+        return uriToHystrixConfigCache.getUnchecked(uri).orElse(null);
     }
 }

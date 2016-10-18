@@ -7,5 +7,11 @@ import com.ymatou.doorgod.apigateway.model.Sample;
  */
 public class FilterContext {
     public Sample sample;
-    public String ruleName;
+
+    //是否被拒绝
+    public boolean rejected;
+
+    //被拒绝的规则名
+    public String rejectRuleName;
+
 }

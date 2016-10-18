@@ -7,6 +7,7 @@ import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.List;
 
 /**
@@ -28,9 +29,9 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
 
         for ( BlacklistRule rule : rules ) {
             if ( !rule.isObserverMode()) {
-                context.ruleName = rule.getName();
                 Sample sample = context.sample.narrow(rule.getDimensionKeys());
                 if (offenderCache.isInBlacklist(rule.getName(), sample)) {
+                    context.rejectRuleName = rule.getName();
                     return false;
                 }
             }

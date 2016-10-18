@@ -4,7 +4,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;

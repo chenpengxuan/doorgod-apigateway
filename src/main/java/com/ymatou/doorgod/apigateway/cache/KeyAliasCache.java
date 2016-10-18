@@ -1,16 +1,18 @@
 package com.ymatou.doorgod.apigateway.cache;
 
-import com.google.common.cache.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.KeyAlias;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by tuwenjie on 2016/9/18.

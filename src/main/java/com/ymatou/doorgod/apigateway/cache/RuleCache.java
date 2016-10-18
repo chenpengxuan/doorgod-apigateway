@@ -3,7 +3,6 @@ package com.ymatou.doorgod.apigateway.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.escape.ArrayBasedCharEscaper;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.AbstractRule;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;

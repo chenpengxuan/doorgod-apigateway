@@ -1,7 +1,7 @@
 package com.ymatou.doorgod.apigateway.cache;
 
-import com.ymatou.doorgod.apigateway.reverseproxy.filter.PreFilter;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.PreFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

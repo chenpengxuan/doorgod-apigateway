@@ -7,8 +7,10 @@ import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Enumeration;
@@ -35,7 +37,8 @@ public class Utils {
         if ( result == null || result.trim().length() == 0) {
             return req.remoteAddress().host();
         } else {
-            return result;
+            Set<String> ips = splitByComma(result);
+            return ips.iterator().next();
         }
     }
 
@@ -53,9 +56,15 @@ public class Utils {
         return result;
     }
 
-    public static String getCurrentTime( ) {
+    public static String getCurrentTimeStr( ) {
         LocalDateTime dateTime = LocalDateTime.now();
         return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    }
+
+    public static String getTimeStr(long timeInMillisencods) {
+        Instant instant = Instant.ofEpochMilli(timeInMillisencods);
+        LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault());
+        return ldt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
 
     public static Date parseDate( String date ) {
@@ -103,5 +112,9 @@ public class Utils {
 
             return localIp;
         }
+    }
+
+    public static String buildFullDoorGodHeaderName( String name ) {
+        return Constants.HEADER_DOOR_GOD_PREFIX + name;
     }
 }

@@ -1,7 +1,6 @@
 package com.ymatou.doorgod.apigateway.integration;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.utils.Constants;
@@ -52,7 +51,7 @@ public class MongodbClient {
         FindOptions findOptions = new FindOptions().setLimit(Constants.MAX_OFFENDERS);
         findOptions.setFields(new JsonObject().put("sample",true).put("releaseDate", true));
         JsonObject query = new JsonObject().put("ruleName", ruleName);
-        query.put("releaseDate", new JsonObject().put("$gt", Long.valueOf(Utils.getCurrentTime())));
+        query.put("releaseDate", new JsonObject().put("$gt", Long.valueOf(Utils.getCurrentTimeStr())));
 
 
         CountDownLatch latch = new CountDownLatch(1);

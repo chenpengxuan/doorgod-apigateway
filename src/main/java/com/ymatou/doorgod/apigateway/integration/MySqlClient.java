@@ -1,8 +1,8 @@
 package com.ymatou.doorgod.apigateway.integration;
 
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.reverseproxy.filter.PreFilter;
 import com.ymatou.doorgod.apigateway.model.*;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.PreFilter;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import groovy.lang.GroovyClassLoader;
@@ -19,7 +19,10 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**

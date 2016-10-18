@@ -4,6 +4,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FilterContext;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import io.vertx.core.http.HttpServerRequest;
@@ -16,7 +17,7 @@ import rx.Subscriber;
  * 用Hystrix上报/监控ApiGateway自身{@link FiltersExecutor}的性能
  * Created by tuwenjie on 2016/9/6.
  */
-public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Boolean> {
+public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<FilterContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(HystrixFiltersExecutorCommand.class);
 
@@ -38,14 +39,14 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Bool
     }
 
     @Override
-    protected Observable<Boolean> construct() {
-        return Observable.create(new Observable.OnSubscribe<Boolean>() {
+    protected Observable<FilterContext> construct() {
+        return Observable.create(new Observable.OnSubscribe<FilterContext>() {
             @Override
-            public void call(Subscriber<? super Boolean> subscriber) {
+            public void call(Subscriber<? super FilterContext> subscriber) {
                 try {
                     if (!subscriber.isUnsubscribed()) {
-                        boolean result = filtersExecutor.pass(httpServerReq);
-                        subscriber.onNext(result);
+                        FilterContext context = filtersExecutor.pass(httpServerReq);
+                        subscriber.onNext(context);
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {

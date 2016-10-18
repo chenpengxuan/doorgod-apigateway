@@ -3,8 +3,6 @@ package com.ymatou.doorgod.apigateway.cache;
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.integration.KafkaRecordListener;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
-import com.ymatou.doorgod.apigateway.model.HystrixConfig;
-import com.ymatou.doorgod.apigateway.model.KeyAlias;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.DynamicHystrixPropertiesStrategy;
 import com.ymatou.doorgod.apigateway.utils.Constants;

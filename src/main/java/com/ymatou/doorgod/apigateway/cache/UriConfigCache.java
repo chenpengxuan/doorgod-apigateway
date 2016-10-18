@@ -4,7 +4,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
-import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.model.UriConfig;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by tuwenjie on 2016/9/18.
@@ -26,7 +26,7 @@ public class UriConfigCache implements Cache {
 
     private List<UriConfig> configs = new ArrayList<UriConfig>();
 
-    private LoadingCache<String, UriConfig> uriToConfigCache;
+    private LoadingCache<String, Optional<UriConfig>> uriToConfigCache;
 
     @PostConstruct
     @Override
@@ -43,14 +43,14 @@ public class UriConfigCache implements Cache {
             uriToConfigCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, UriConfig>() {
-                                public UriConfig load(String uri) {
+                            new CacheLoader<String, Optional<UriConfig>>() {
+                                public Optional<UriConfig> load(String uri) {
                                     for ( UriConfig config : configs ) {
                                         if ( uri.toLowerCase().startsWith(config.getUri())) {
-                                            return config;
+                                            return Optional.of(config);
                                         }
                                     }
-                                    return null;
+                                    return Optional.empty();
                                 }
                             });
         }
@@ -62,6 +62,6 @@ public class UriConfigCache implements Cache {
 
 
     public UriConfig locate( String uri ) {
-        return uriToConfigCache.getUnchecked(uri);
+        return uriToConfigCache.getUnchecked(uri).orElse(null);
     }
 }
