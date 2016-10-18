@@ -1,5 +1,6 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
+import com.google.common.collect.Sets;
 import com.ymatou.doorgod.apigateway.cache.KeyAliasCache;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.utils.Utils;
@@ -7,6 +8,7 @@ import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -26,6 +28,7 @@ public class DimensionKeyValueFetcher {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
         } else if (KEY_NAME_URI.equals( key )) {
+            //FIXME: uri pattern
             return httpReq.path().toLowerCase();
         } else {
 
@@ -54,5 +57,12 @@ public class DimensionKeyValueFetcher {
             sample.addDimensionValue(s, fetch(s, httpReq));
         });
         return sample;
+    }
+
+    //默认只提取uri
+    public Sample fetch( HttpServerRequest httpReq) {
+        Set set = new HashSet( );
+        set.add(KEY_NAME_URI);
+        return fetch(set, httpReq);
     }
 }

@@ -1,9 +1,13 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
+import com.alibaba.fastjson.JSON;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpClient;
@@ -80,6 +84,11 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         handler.fallback(httpServerReq,
                                 //对外统一为被断路器拦截
                                 "Rejected by CircuitBreaker");
+
+                        //被Hystrix拦截，没经过Filter，Sample还没有，构造一个默认的
+                        Sample sample = SpringContextHolder.getBean(DimensionKeyValueFetcher.class).fetch(httpServerReq);
+                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_SAMPLE),
+                                JSON.toJSONString(sample));
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {

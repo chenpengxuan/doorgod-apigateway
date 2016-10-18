@@ -37,15 +37,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private HttpClient httpClient;
 
-    private Vertx vertx;
-
-    private TargetServer targetServer;
 
     public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient) {
         this.subscriber = subscriber;
         this.httpClient = httpClient;
-        this.vertx = VertxVerticleDeployer.vertx;
-        this.targetServer = VertxVerticleDeployer.targetServer;
     }
 
     @Override
@@ -84,6 +79,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         if (httpServerReq.headers().contains(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REQ_REJECTED_BY_FILTER))) {
             fallback(httpServerReq, "Rejected by filters");
         } else {
+            TargetServer targetServer = VertxVerticleDeployer.targetServer;
             HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), targetServer.getPort(),
                     targetServer.getHost(),
                     httpServerReq.uri(),
