@@ -88,7 +88,9 @@ public class KafkaClient {
         consumer.subscribe(Arrays.asList(Constants.TOPIC_UPDATE_OFFENDER_EVENT,
                 Constants.TOPIC_UPDATE_RULE_EVENT,
                 Constants.TOPIC_UPDATE_HYSTRIX_CONFIG_EVENT,
-                Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT));
+                Constants.TOPIC_UPDATE_KEY_ALIAS_EVENT,
+                Constants.TOPIC_UPDATE_URI_CONFIG_EVENT,
+                Constants.TOPIC_UPDATE_URI_PATTERN_EVENT));
 
         Thread thread = new Thread(() -> {
             try {
