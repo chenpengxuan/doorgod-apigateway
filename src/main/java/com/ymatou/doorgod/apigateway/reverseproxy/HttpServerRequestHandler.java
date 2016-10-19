@@ -226,7 +226,11 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         item.setRejectedByHystrix(Boolean.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REJECTED_BY_HYSTRIX))));
         item.setStatusCode(req.response().getStatusCode());
         item.setFilterConsumedTime(Long.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_FILTER_CONSUME_TIME))));
-        item.setOrigStatusCode(Integer.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ORIG_STATUS_CODE))));
+
+        String origStatusCode = req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ORIG_STATUS_CODE));
+        if ( StringUtils.hasText(origStatusCode)) {
+            item.setOrigStatusCode(Integer.valueOf(origStatusCode));
+        }
         return item;
     }
 
