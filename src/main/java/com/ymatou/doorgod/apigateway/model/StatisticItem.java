@@ -29,6 +29,10 @@ public class StatisticItem {
 
     private int origStatusCode;
 
+    private String host;
+
+    private String ip;
+
     public Sample getSample() {
         return sample;
     }
@@ -108,5 +112,21 @@ public class StatisticItem {
 
     public void setOrigStatusCode(int origStatusCode) {
         this.origStatusCode = origStatusCode;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 }

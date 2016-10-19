@@ -53,8 +53,12 @@ public class UriPatternCache implements Cache {
                             new com.google.common.cache.CacheLoader<String, Optional<String>>() {
                                 public Optional<String> load(String uri) {
                                     for ( String pattern : patterns) {
-                                        if (Pattern.matches(pattern, uri)) {
-                                            return Optional.of(pattern);
+                                        try {
+                                            if (Pattern.matches(pattern, uri)) {
+                                                return Optional.of(pattern);
+                                            }
+                                        } catch (Exception e) {
+                                            LOGGER.error("Failed to parse pattern:{}", pattern, e);
                                         }
                                     }
                                     return Optional.empty();

@@ -61,7 +61,7 @@ public interface Constants {
     //是否被Hystrix拦截
     public static final String HEADER_REJECTED_BY_HYSTRIX = "rejectedByHystrix";
 
-    public static final int MAX_CACHED_URIS = 3000;
+    public static final int MAX_CACHED_URIS = 10000;
 
     public static final int MAX_OFFENDERS = 10000;
 }

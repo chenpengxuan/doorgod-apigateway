@@ -85,15 +85,12 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                                 //对外统一为被断路器拦截
                                 "Rejected by CircuitBreaker");
 
-                        //被Hystrix拦截，没经过Filter，Sample还没有，构造一个默认的
-                        Sample sample = SpringContextHolder.getBean(DimensionKeyValueFetcher.class).fetch(httpServerReq);
-                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_SAMPLE),
-                                JSON.toJSONString(sample));
                         subscriber.onCompleted();
                     }
                 } catch (Exception e) {
                     //should never goes here
                     LOGGER.error("Failed to do fallback process for req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
+                    httpServerReq.response().setChunked(true);
                     httpServerReq.response().setStatusCode(500);
                     httpServerReq.response().write("error in fallback");
                     httpServerReq.response().end();

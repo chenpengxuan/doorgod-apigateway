@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Created by tuwenjie on 2016/9/18.
@@ -46,8 +47,13 @@ public class UriConfigCache implements Cache {
                             new CacheLoader<String, Optional<UriConfig>>() {
                                 public Optional<UriConfig> load(String uri) {
                                     for ( UriConfig config : configs ) {
-                                        if ( uri.toLowerCase().startsWith(config.getUri())) {
-                                            return Optional.of(config);
+                                        try {
+                                            if (uri.toLowerCase().startsWith(config.getUri())
+                                                    || Pattern.matches(config.getUri(), uri.toLowerCase())) {
+                                                return Optional.of(config);
+                                            }
+                                        } catch ( Exception e ) {
+                                            LOGGER.error("Failed to parse Pattern:{}", config.getUri(), e);
                                         }
                                     }
                                     return Optional.empty();

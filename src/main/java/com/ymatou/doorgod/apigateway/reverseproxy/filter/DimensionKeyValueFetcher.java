@@ -2,6 +2,7 @@ package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
 import com.google.common.collect.Sets;
 import com.ymatou.doorgod.apigateway.cache.KeyAliasCache;
+import com.ymatou.doorgod.apigateway.cache.UriPatternCache;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
@@ -20,6 +21,9 @@ public class DimensionKeyValueFetcher {
     @Autowired
     private KeyAliasCache keyAliasCache;
 
+    @Autowired
+    private UriPatternCache uriPatternCache;
+
     public static final String KEY_NAME_IP = "ip";
 
     public static final String KEY_NAME_URI = "uri";
@@ -28,8 +32,7 @@ public class DimensionKeyValueFetcher {
         if ( KEY_NAME_IP.equals(key)) {
             return Utils.getOriginalIp(httpReq);
         } else if (KEY_NAME_URI.equals( key )) {
-            //FIXME: uri pattern
-            return httpReq.path().toLowerCase();
+            return fetchUriToStatis(httpReq);
         } else {
 
             String alias = keyAliasCache.getAlias(httpReq.path().toLowerCase(), key);
@@ -59,10 +62,15 @@ public class DimensionKeyValueFetcher {
         return sample;
     }
 
-    //默认只提取uri
-    public Sample fetch( HttpServerRequest httpReq) {
-        Set set = new HashSet( );
-        set.add(KEY_NAME_URI);
-        return fetch(set, httpReq);
+    public String fetchUriToStatis( HttpServerRequest req) {
+        String uri = req.path().toLowerCase();
+        String pattern = uriPatternCache.getPattern(uri);
+        if ( pattern == null ) {
+            return uri;
+        } else {
+            //对于动态变更的uri，譬如/product/${productId},通过pattern固化
+            return pattern;
+        }
     }
+
 }

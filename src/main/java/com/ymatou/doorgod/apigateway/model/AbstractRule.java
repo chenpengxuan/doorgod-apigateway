@@ -1,15 +1,20 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created by tuwenjie on 2016/9/7.
  */
 public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(AbstractRule.class);
 
     private String name;
 
@@ -89,8 +94,13 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
             return true;
         }
         for ( String applicable : applicableUris ) {
-            if ( applicable.startsWith(uri)) {
-                return true;
+            try {
+                if (applicable.startsWith(uri)
+                        || Pattern.matches(applicable, uri)) {
+                    return true;
+                }
+            } catch (Exception e ) {
+                LOGGER.error("Failed to parse pattern in applicableUrls {} of rule {}", applicable, name, e);
             }
         }
 
