@@ -1,2 +1,2 @@
 2016-10-20
-init version 1
+init version 2
