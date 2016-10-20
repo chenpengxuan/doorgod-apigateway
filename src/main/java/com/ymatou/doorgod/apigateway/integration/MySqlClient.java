@@ -361,7 +361,7 @@ public class MySqlClient {
     }
 
     public TargetServer locateTargetServer() throws Exception {
-        TargetServer result = new TargetServer();
+        TargetServer result = TargetServer.defaultInstance();
         JsonArray params = new JsonArray().add(Utils.localIp());
         CountDownLatch latch = new CountDownLatch(1);
         Throwable[] throwableInLoading = new Throwable[]{null};
@@ -408,7 +408,8 @@ public class MySqlClient {
         }
 
         if ( !StringUtils.hasText(result.getHost()) || result.getPort() <= 0){
-            throw new Exception("Target server not set properly for ApiGateway on ip:" + Utils.localIp());
+            throw new Exception("Target server not set properly for ApiGateway on ip:{}" + Utils.localIp()
+                + " targetServer:" + result.getHost() + " port:" + result.getPort());
         }
 
         return result;

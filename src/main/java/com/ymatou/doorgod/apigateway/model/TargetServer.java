@@ -22,4 +22,11 @@ public class TargetServer extends PrintFriendliness {
     public void setPort(int port) {
         this.port = port;
     }
+
+    public static TargetServer defaultInstance( ) {
+        TargetServer server = new TargetServer();
+        server.setPort(80);
+        server.setHost("localhost");
+        return server;
+    }
 }
