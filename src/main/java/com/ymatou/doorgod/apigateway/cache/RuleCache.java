@@ -6,6 +6,7 @@ import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.AbstractRule;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
+import com.ymatou.doorgod.apigateway.model.HostUri;
 import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +36,9 @@ public class RuleCache implements Cache {
 
     private Set<String> allDimensionKeys = new HashSet<String>( );
 
-    //基于uri的缓存, key: uri
-    private LoadingCache<String, List<BlacklistRule>> uriToBlacklistRulesCache;
-    private LoadingCache<String, List<LimitTimesRule>> uriToLimitTimesRulesCache;
+    //基于HostUri的缓存
+    private LoadingCache<HostUri, List<BlacklistRule>> uriToBlacklistRulesCache;
+    private LoadingCache<HostUri, List<LimitTimesRule>> uriToLimitTimesRulesCache;
 
     @PostConstruct
     @Override
@@ -58,9 +59,9 @@ public class RuleCache implements Cache {
             uriToBlacklistRulesCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, List<BlacklistRule>>() {
-                                public List<BlacklistRule> load(String uri) {
-                                    return blacklistRules.stream().filter(rule -> rule.applicable(uri))
+                            new CacheLoader<HostUri, List<BlacklistRule>>() {
+                                public List<BlacklistRule> load(HostUri hostUri) {
+                                    return blacklistRules.stream().filter(rule -> rule.applicable(hostUri))
                                             .collect(Collectors.toList());
                                 }
                             });
@@ -70,9 +71,9 @@ public class RuleCache implements Cache {
             uriToLimitTimesRulesCache = CacheBuilder.newBuilder()
                     .maximumSize(Constants.MAX_CACHED_URIS)
                     .build(
-                            new CacheLoader<String, List<LimitTimesRule>>() {
-                                public List<LimitTimesRule> load(String uri) {
-                                    return limitTimesRules.stream().filter(rule -> rule.applicable(uri))
+                            new CacheLoader<HostUri, List<LimitTimesRule>>() {
+                                public List<LimitTimesRule> load(HostUri hostUri) {
+                                    return limitTimesRules.stream().filter(rule -> rule.applicable(hostUri))
                                             .collect(Collectors.toList());
                                 }
                             });
@@ -81,12 +82,12 @@ public class RuleCache implements Cache {
         uriToLimitTimesRulesCache.invalidateAll();
     }
 
-    public List<LimitTimesRule> applicableLimitTimesRules( String uri ) {
-        return uriToLimitTimesRulesCache.getUnchecked(uri);
+    public List<LimitTimesRule> applicableLimitTimesRules( HostUri hostUri ) {
+        return uriToLimitTimesRulesCache.getUnchecked(hostUri);
     }
 
-    public List<BlacklistRule> applicableBlacklistRules( String uri ) {
-        return uriToBlacklistRulesCache.getUnchecked(uri);
+    public List<BlacklistRule> applicableBlacklistRules( HostUri hostUri ) {
+        return uriToBlacklistRulesCache.getUnchecked(hostUri);
     }
 
     private void fillDimensionKeys( ) {

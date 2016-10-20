@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.SpringContextHolder;
 import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.cache.UriConfigCache;
-import com.ymatou.doorgod.apigateway.cache.UriPatternCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
 import com.ymatou.doorgod.apigateway.model.*;
@@ -16,7 +15,6 @@ import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
@@ -54,7 +52,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     public void handle(HttpServerRequest httpServerReq) {
 
         //将当前时间放到请求头，以便统计耗时
-        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ACCEEP_TIME), "" + System.currentTimeMillis());
+        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_ACCEEP_TIME, "" + System.currentTimeMillis());
 
         FiltersExecutor filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
 
@@ -63,16 +61,18 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         long startTime = System.currentTimeMillis();
         filtersExecutorCommand.toObservable().subscribe(filterContext -> {
 
-            httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_SAMPLE),
+            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_SAMPLE,
                     JSON.toJSONString(filterContext.sample));
+            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_MATCH_RULES,
+                    JSON.toJSONString(filterContext.matchedRuleNames));
 
             //将Filters耗时放置到报文头
-            httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_FILTER_CONSUME_TIME),
+            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_FILTER_CONSUME_TIME,
                     "" + (System.currentTimeMillis() - startTime));
             if (filterContext.rejected) {
-                httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REQ_REJECTED_BY_FILTER),
+                Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER,
                         "true");
-                httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE),
+                Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE,
                         filterContext.rejectRuleName);
             }
 
@@ -83,7 +83,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
     private void process(HttpServerRequest httpServerReq) {
-        if (httpServerReq.headers().contains(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REQ_REJECTED_BY_FILTER))) {
+        if (Utils.containDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER)) {
             fallback(httpServerReq, "Rejected by filters");
         } else {
             TargetServer targetServer = VertxVerticleDeployer.targetServer;
@@ -96,7 +96,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                         AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
 
-                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ORIG_STATUS_CODE), "" + targetResp.statusCode());
+                        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_ORIG_STATUS_CODE, "" + targetResp.statusCode());
 
                         if ( appConfig.isDebugMode()) {
                             Constants.ACCESS_LOGGER.info("Resp Header:{} {} {}", httpServerReq.path(), System.getProperty("line.separator"), buildHeadersStr(targetResp.headers()));
@@ -115,7 +115,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                             httpServerReq.response().write(data);
                         });
                         targetResp.exceptionHandler(throwable -> {
-                            LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
+                            LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                             httpServerReq.response().setStatusCode(500);
                             httpServerReq.response().setStatusMessage("Failed to read target service resp");
                             onError(httpServerReq, throwable);
@@ -142,7 +142,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             });
 
             forwardClientReq.exceptionHandler(throwable -> {
-                LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.uri(), throwable);
+                LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 httpServerReq.response().setChunked(true);
                 if (throwable instanceof java.net.ConnectException) {
                     httpServerReq.response().setStatusCode(408);
@@ -213,24 +213,28 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         item.setUri(dimensionKeyValueFetcher.fetchUriToStatis(req));
 
-        item.setReqTime(Utils.getTimeStr(Long.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ACCEEP_TIME)))));
+        item.setReqTime(Utils.getTimeStr(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME))));
 
-        String sampleStr = req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_SAMPLE));
+        String sampleStr = Utils.getDoorGodHeader(req, Constants.HEADER_SAMPLE);
+        //当直接被Hystrix拦截时，是没有Sample的
         if (StringUtils.hasText(sampleStr)) {
             item.setSample(JSON.parseObject(sampleStr, Sample.class));
         }
 
-        item.setConsumedTime(System.currentTimeMillis() - Long.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ACCEEP_TIME))));
-        item.setHitRule(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE)));
-        item.setRejectedByFilter(Boolean.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REQ_REJECTED_BY_FILTER))));
-        item.setRejectedByHystrix(Boolean.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REJECTED_BY_HYSTRIX))));
+        item.setConsumedTime(System.currentTimeMillis() - Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME)));
+        item.setHitRule(Utils.getDoorGodHeader(req, Constants.HEADER_HIT_RULE));
+        item.setRejectedByFilter(Boolean.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_REQ_REJECTED_BY_FILTER)));
+        item.setRejectedByHystrix(Boolean.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_REJECTED_BY_HYSTRIX)));
         item.setStatusCode(req.response().getStatusCode());
-        item.setFilterConsumedTime(Long.valueOf(req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_FILTER_CONSUME_TIME))));
+        item.setFilterConsumedTime(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME)));
 
-        String origStatusCode = req.headers().get(Utils.buildFullDoorGodHeaderName(Constants.HEADER_ORIG_STATUS_CODE));
+        String origStatusCode = req.headers().get(Utils.getDoorGodHeader(req, Constants.HEADER_ORIG_STATUS_CODE));
         if ( StringUtils.hasText(origStatusCode)) {
             item.setOrigStatusCode(Integer.valueOf(origStatusCode));
         }
+
+        item.setMatchRules(JSON.parseObject(Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME), Set.class));
+
         return item;
     }
 

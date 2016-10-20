@@ -1,6 +1,5 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
-import com.google.common.collect.Sets;
 import com.ymatou.doorgod.apigateway.cache.KeyAliasCache;
 import com.ymatou.doorgod.apigateway.cache.UriPatternCache;
 import com.ymatou.doorgod.apigateway.model.Sample;
@@ -9,7 +8,6 @@ import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**

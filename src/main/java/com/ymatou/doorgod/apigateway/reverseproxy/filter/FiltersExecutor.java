@@ -3,7 +3,9 @@ package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 import com.ymatou.doorgod.apigateway.cache.CustomizeFilterCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
 import com.ymatou.doorgod.apigateway.integration.KafkaClient;
+import com.ymatou.doorgod.apigateway.model.HostUri;
 import com.ymatou.doorgod.apigateway.model.Sample;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ public class FiltersExecutor {
         boolean pass = true;
         Sample sample = null;
         FilterContext context = new FilterContext();
+        context.hostUri = new HostUri(httpReq.host(), httpReq.path());
         try {
             Set<String> dimensionKeys = ruleCache.getAllDimensionKeys();
             sample = dimensionKeyValueFetcher.fetch(dimensionKeys, httpReq);
@@ -68,7 +71,7 @@ public class FiltersExecutor {
             }
 
         } catch ( Exception e ) {
-            LOGGER.error("Exception in doing filter for reverseproxy request:{}", httpReq.path(), e );
+            LOGGER.error("Exception in doing filter for reverseproxy request:{}", Utils.buildFullUri(httpReq), e );
             context.rejected = false;
             context.rejectRuleName = null;
         }

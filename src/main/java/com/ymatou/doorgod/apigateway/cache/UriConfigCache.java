@@ -53,7 +53,7 @@ public class UriConfigCache implements Cache {
                                                 return Optional.of(config);
                                             }
                                         } catch ( Exception e ) {
-                                            LOGGER.error("Failed to parse Pattern:{}", config.getUri(), e);
+                                            LOGGER.error("Failed to parse Pattern:{} in uri config", config.getUri(), e);
                                         }
                                     }
                                     return Optional.empty();

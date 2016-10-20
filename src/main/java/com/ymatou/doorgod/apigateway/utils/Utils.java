@@ -114,7 +114,25 @@ public class Utils {
         }
     }
 
-    public static String buildFullDoorGodHeaderName( String name ) {
+    private static String buildFullDoorGodHeaderName( String name ) {
         return Constants.HEADER_DOOR_GOD_PREFIX + name;
+    }
+
+    public static void addDoorGodHeader( HttpServerRequest req, String headerWithoutPrefix, String value) {
+        String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
+        req.headers().add(header, value);
+    }
+
+    public static String getDoorGodHeader(HttpServerRequest req, String headerWithoutPrefix ) {
+        String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
+        return req.headers().get(buildFullDoorGodHeaderName(headerWithoutPrefix));
+    }
+
+    public static boolean containDoorGodHeader( HttpServerRequest req, String headerWithoutPrefix) {
+        return req.headers().contains(buildFullDoorGodHeaderName(headerWithoutPrefix));
+    }
+
+    public static String buildFullUri( HttpServerRequest req ) {
+        return req.host() + req.uri();
     }
 }

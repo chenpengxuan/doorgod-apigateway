@@ -14,10 +14,6 @@ public interface Constants {
     //请求被拒绝日志，单独拎出
     public static final Logger REJECT_LOGGER = LoggerFactory.getLogger("reject");
 
-    public static final String RULE_TYPE_NAME_LIMIT_TIMES_RULE = "LimitTimesRule";
-
-    public static final String RULE_TYPE_NAME_BLACKLIST_RULE = "BlacklistRule";
-
     public static final String TOPIC_STATISTIC_SAMPLE_EVENT = "doorgod.statisticSampleEvent";
 
     public static final String TOPIC_UPDATE_OFFENDER_EVENT = "doorgod.updateOffenderEvent";
@@ -54,6 +50,9 @@ public interface Constants {
 
     //样本
     public static final String HEADER_SAMPLE = "sample";
+
+    //与请求匹配的规则名列表
+    public static final String HEADER_MATCH_RULES = "matchRules";
 
     //原始响应码
     public static final String HEADER_ORIG_STATUS_CODE = "origStatusCode";

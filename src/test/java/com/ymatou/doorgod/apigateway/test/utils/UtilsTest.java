@@ -6,6 +6,8 @@ import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import org.junit.Test;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -29,6 +31,19 @@ public class UtilsTest {
         long milliSeconds = System.currentTimeMillis();
         System.out.println( Utils.getTimeStr(milliSeconds));
         System.out.println( Utils.getCurrentTimeStr());
+
+
+        Set<String> names = new HashSet<String>();
+        names.add("100");
+        names.add("200");
+
+        json = JSON.toJSONString(names);
+
+        System.out.println( "set json:" + json);
+
+        names = JSON.parseObject(json, Set.class);
+
+        System.out.println( names );
 
     }
 

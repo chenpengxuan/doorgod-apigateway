@@ -1,14 +1,14 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
-import com.ymatou.doorgod.apigateway.cache.BlacklistRuleOffenderCache;
 import com.ymatou.doorgod.apigateway.cache.RuleCache;
+import com.ymatou.doorgod.apigateway.cache.RuleOffenderCache;
 import com.ymatou.doorgod.apigateway.model.BlacklistRule;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import io.vertx.core.http.HttpServerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Date;
 
 /**
  * 执行黑名单规则的Filter
@@ -16,21 +16,20 @@ import java.util.List;
  */
 @Component
 public class BlacklistRulesFilter extends AbstractPreFilter {
-
     @Autowired
     private RuleCache ruleCache;
 
     @Autowired
-    private BlacklistRuleOffenderCache offenderCache;
+    private RuleOffenderCache ruleOffenderCache;
 
     @Override
     protected boolean passable(HttpServerRequest req, FilterContext context) {
-        List<BlacklistRule> rules = ruleCache.applicableBlacklistRules(req.path().toLowerCase());
-
-        for ( BlacklistRule rule : rules ) {
+        for (BlacklistRule rule : ruleCache.applicableBlacklistRules(context.hostUri)) {
+            context.matchedRuleNames.add(rule.getName());
             if ( !rule.isObserverMode()) {
-                Sample sample = context.sample.narrow(rule.getDimensionKeys());
-                if (offenderCache.isInBlacklist(rule.getName(), sample)) {
+                Sample sample = context.sample.narrow( rule.getDimensionKeys());
+                Date releaseDate = ruleOffenderCache.locateReleaseDate(rule.getName(), sample);
+                if (releaseDate != null && releaseDate.compareTo(new Date()) >= 0) {
                     context.rejectRuleName = rule.getName();
                     return false;
                 }
@@ -42,6 +41,6 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
 
     @Override
     public int getOrder() {
-        return 0;
+        return 1;
     }
 }

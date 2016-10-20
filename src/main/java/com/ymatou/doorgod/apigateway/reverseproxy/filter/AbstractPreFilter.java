@@ -1,6 +1,7 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
 import com.ymatou.doorgod.apigateway.utils.Constants;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
@@ -24,7 +25,7 @@ public abstract class AbstractPreFilter implements PreFilter {
                 context.rejectRuleName = name( );
             }
             Constants.REJECT_LOGGER.warn("Request:{} is rejected by ruleName:{}, Sample:{}",
-                    req.uri(),
+                    Utils.buildFullUri(req),
                     context.rejectRuleName,
                     context.sample);
 

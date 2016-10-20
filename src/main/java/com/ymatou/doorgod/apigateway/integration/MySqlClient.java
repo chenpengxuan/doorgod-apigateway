@@ -3,7 +3,6 @@ package com.ymatou.doorgod.apigateway.integration;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.*;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.PreFilter;
-import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import groovy.lang.GroovyClassLoader;
 import io.vertx.core.Vertx;
@@ -49,13 +48,13 @@ public class MySqlClient {
         Throwable[] throwableInLoading = new Throwable[]{null};
         client.getConnection(connEvent -> {
             if (connEvent.succeeded()) {
-                connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris, observe_mode from rule where status='ENABLE' ",
+                connEvent.result().query("select name, statistic_span, times_cap,rejection_span,`keys`, groupby_keys, rule_type, `order`, uris, observe_mode, counting_keys,host from rule where status='ENABLE' ",
                         queryEvent -> {
                             if (queryEvent.succeeded()) {
                                 queryEvent.result().getRows().stream().forEach(row -> {
 
                                     try {
-                                        if (Constants.RULE_TYPE_NAME_LIMIT_TIMES_RULE.equalsIgnoreCase(row.getString("rule_type"))) {
+                                        if (RuleTypeEnum.LimitTimesRule.name().equalsIgnoreCase(row.getString("rule_type"))) {
 
                                             LimitTimesRule rule = new LimitTimesRule();
                                             rule.setDimensionKeys(Utils.splitByComma(row.getString("keys")));
@@ -67,9 +66,11 @@ public class MySqlClient {
                                             rule.setOrder(row.getInteger("order"));
                                             rule.setObserverMode(convertBool(row.getInteger("observe_mode")));
                                             rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
+                                            rule.setHost(row.getString("host"));
+                                            rule.setCountingKeys(Utils.splitByComma(row.getString("counting_keys")));
                                             result.add(rule);
 
-                                        } else if (Constants.RULE_TYPE_NAME_BLACKLIST_RULE.equalsIgnoreCase(row.getString("rule_type"))) {
+                                        } else if (RuleTypeEnum.BlacklistRule.name().equalsIgnoreCase(row.getString("rule_type"))) {
 
                                             BlacklistRule rule = new BlacklistRule();
                                             rule.setOrder(row.getInteger("order"));
@@ -77,6 +78,7 @@ public class MySqlClient {
                                             rule.setDimensionKeys(Utils.splitByComma(row.getString("keys")));
                                             rule.setObserverMode(convertBool(row.getInteger("observe_mode")));
                                             rule.setApplicableUris(Utils.splitByComma(row.getString("uris")));
+                                            rule.setHost(row.getString("host"));
                                             result.add(rule);
 
                                         } else {

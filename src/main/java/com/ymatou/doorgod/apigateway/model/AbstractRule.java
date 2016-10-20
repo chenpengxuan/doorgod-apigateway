@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,11 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
      * 适用的uri列表。
      */
     private Set<String> applicableUris = new HashSet<String>( );
+
+    /**
+     * 使用的域名
+     */
+    private String host;
 
     /**
      * 是否是观察模式。
@@ -89,14 +95,23 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
         return name != null ? name.hashCode() : 0;
     }
 
-    public boolean applicable( String uri ) {
+    public boolean applicable( HostUri hostUri ) {
+        if (StringUtils.hasText(host)) {
+
+            //先匹配Host
+            if ( !host.equalsIgnoreCase(hostUri.getHost())) {
+                return false;
+            }
+        }
+
+        //再匹配uri
         if (CollectionUtils.isEmpty(applicableUris)) {
             return true;
         }
         for ( String applicable : applicableUris ) {
             try {
-                if (applicable.startsWith(uri)
-                        || Pattern.matches(applicable, uri)) {
+                if (applicable.startsWith(hostUri.getUri())
+                        || Pattern.matches(applicable, hostUri.getUri())) {
                     return true;
                 }
             } catch (Exception e ) {
@@ -106,4 +121,14 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
 
         return false;
     }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public abstract RuleTypeEnum type( );
 }

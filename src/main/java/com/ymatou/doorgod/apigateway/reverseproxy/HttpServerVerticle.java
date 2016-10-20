@@ -20,7 +20,7 @@ public class HttpServerVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
 
     /**
-     * One vertice, one httpclient, see:
+     * One verticle, one httpclient, see:
      * https://github.com/eclipse/vert.x/issues/1248
      */
     private HttpClient httpClient;
@@ -36,7 +36,7 @@ public class HttpServerVerticle extends AbstractVerticle {
             options.setLogActivity(true);
         }
 
-        HttpServer server = vertx.createHttpServer();
+        HttpServer server = vertx.createHttpServer(options);
 
         buildHttpClient(appConfig);
 
@@ -58,8 +58,14 @@ public class HttpServerVerticle extends AbstractVerticle {
             }
         });
 
-
-        server.listen(appConfig.getVertxServerPort());
+        server.listen(appConfig.getVertxServerPort(), event -> {
+            if ( event.failed()) {
+                LOGGER.error("Failed to bind port:{}", appConfig.getVertxServerPort(), event.cause());
+                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_BIND, event.cause().getMessage());
+            } else {
+                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_BIND, VertxVerticleDeployer.SUCCESS_MSG);
+            }
+        });
     }
 
     @Override
@@ -71,8 +77,8 @@ public class HttpServerVerticle extends AbstractVerticle {
 
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
-        httpClientOptions.setLogActivity(false);
 
+        httpClientOptions.setLogActivity(appConfig.isDebugMode());
 
         httpClient = vertx.createHttpClient(httpClientOptions);
     }
@@ -94,7 +100,7 @@ public class HttpServerVerticle extends AbstractVerticle {
                         targetResp -> {
                             targetResp.endHandler(v -> {
                                 LOGGER.info("Succeeded in warmming up one connection of target server {}. verticle:{}", ts, this);
-                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, VertxVerticleDeployer.WARM_UP_SUCCESS_MSG);
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
                             });
                             targetResp.exceptionHandler(throwable -> {
                                 LOGGER.error("Failed to warm up target server.", throwable);

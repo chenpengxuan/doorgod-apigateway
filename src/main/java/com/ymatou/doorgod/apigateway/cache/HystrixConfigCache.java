@@ -6,7 +6,6 @@ import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.HystrixConfig;
 import com.ymatou.doorgod.apigateway.utils.Constants;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +55,7 @@ public class HystrixConfigCache implements Cache {
                                                 return Optional.of(config);
                                             }
                                         } catch ( Exception e ) {
-                                            LOGGER.error("Failed to parse pattern:{}", config.getUri(), e);
+                                            LOGGER.error("Failed to parse pattern:{} in hystrix config", config.getUri(), e);
                                         }
                                     }
                                     return Optional.empty();

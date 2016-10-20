@@ -1,13 +1,9 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
-import com.alibaba.fastjson.JSON;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
-import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
-import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpClient;
@@ -54,7 +50,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         handler.handle(httpServerReq);
                     }
                 } catch (Exception e) {
-                    LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.uri(), e);
+                    LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), e);
                     subscriber.onError(e);
                 }
             }
@@ -73,11 +69,11 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                             HystrixForwardReqCommand.this.isResponseSemaphoreRejected(),
                             HystrixForwardReqCommand.this.getProperties().circuitBreakerForceOpen());
 
-                    httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_REJECTED_BY_HYSTRIX), "true");
+                    Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REJECTED_BY_HYSTRIX, "true");
                     if ( HystrixForwardReqCommand.this.isResponseShortCircuited()) {
-                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE), "circuitBreaker");
+                        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE, "circuitBreaker");
                     } else if (HystrixForwardReqCommand.this.isResponseSemaphoreRejected()){
-                        httpServerReq.headers().add(Utils.buildFullDoorGodHeaderName(Constants.HEADER_HIT_RULE), "maxConcurrent");
+                        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE, "maxConcurrent");
                     }
 
                     if (!subscriber.isUnsubscribed()) {
@@ -92,8 +88,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                     LOGGER.error("Failed to do fallback process for req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
                     httpServerReq.response().setChunked(true);
                     httpServerReq.response().setStatusCode(500);
-                    httpServerReq.response().write("error in fallback");
-                    httpServerReq.response().end();
+                    httpServerReq.response().end("error in fallback");
                     subscriber.onCompleted();
                 }
             }

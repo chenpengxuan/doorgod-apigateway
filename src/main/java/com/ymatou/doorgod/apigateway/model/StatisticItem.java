@@ -1,5 +1,8 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * 发送给决策引擎的统计单元。一个http请求一个
  * Created by tuwenjie on 2016/9/9.
@@ -32,6 +35,8 @@ public class StatisticItem {
     private String host;
 
     private String ip;
+
+    private Set<String> matchRules = new HashSet<>();
 
     public Sample getSample() {
         return sample;
@@ -128,5 +133,13 @@ public class StatisticItem {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public Set<String> getMatchRules() {
+        return matchRules;
+    }
+
+    public void setMatchRules(Set<String> matchRules) {
+        this.matchRules = matchRules;
     }
 }

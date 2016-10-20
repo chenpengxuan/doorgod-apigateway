@@ -2,6 +2,7 @@ package com.ymatou.doorgod.apigateway.test.integration;
 
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.integration.MongodbClient;
+import com.ymatou.doorgod.apigateway.model.RuleTypeEnum;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.test.BaseTest;
 import com.ymatou.doorgod.apigateway.utils.Constants;
@@ -33,7 +34,7 @@ public class MongodbClientTest extends BaseTest {
 
         Thread.sleep(500);
 
-        System.out.println( client.loadLimitTimesRuleOffenders("test"));
+        System.out.println( client.loadRuleOffenders("test", RuleTypeEnum.LimitTimesRule));
     }
 
 

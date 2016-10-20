@@ -30,6 +30,11 @@ public class LimitTimesRule extends AbstractRule {
      */
     private Set<String> groupByKeys = new HashSet<String>();
 
+    /**
+     * 用来计数的Keys
+     */
+    private Set<String> countingKeys = new HashSet<>();
+
     public int getStatisticSpan() {
         return statisticSpan;
     }
@@ -68,5 +73,18 @@ public class LimitTimesRule extends AbstractRule {
 
     public void setGroupByKeys(Set<String> groupByKeys) {
         this.groupByKeys = groupByKeys;
+    }
+
+    @Override
+    public RuleTypeEnum type() {
+        return RuleTypeEnum.LimitTimesRule;
+    }
+
+    public Set<String> getCountingKeys() {
+        return countingKeys;
+    }
+
+    public void setCountingKeys(Set<String> countingKeys) {
+        this.countingKeys = countingKeys;
     }
 }

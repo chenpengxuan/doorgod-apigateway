@@ -1,17 +1,14 @@
 package com.ymatou.doorgod.apigateway.cache;
 
-import com.google.common.base.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
-import com.ymatou.doorgod.apigateway.model.KeyAlias;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -58,7 +55,7 @@ public class UriPatternCache implements Cache {
                                                 return Optional.of(pattern);
                                             }
                                         } catch (Exception e) {
-                                            LOGGER.error("Failed to parse pattern:{}", pattern, e);
+                                            LOGGER.error("Failed to parse pattern:{} in uri pattern", pattern, e);
                                         }
                                     }
                                     return Optional.empty();

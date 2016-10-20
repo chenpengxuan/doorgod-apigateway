@@ -1,8 +1,7 @@
 package com.ymatou.doorgod.apigateway.cache;
 
 import com.ymatou.doorgod.apigateway.integration.MongodbClient;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
-import com.ymatou.doorgod.apigateway.model.Sample;
+import com.ymatou.doorgod.apigateway.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +14,7 @@ import java.util.Map;
  * Created by tuwenjie on 2016/9/8.
  */
 @Component
-public class LimitTimesRuleOffenderCache implements Cache {
+public class RuleOffenderCache implements Cache {
 
     @Autowired
     private RuleCache ruleCache;
@@ -35,7 +34,11 @@ public class LimitTimesRuleOffenderCache implements Cache {
     @Override
     public void reload() throws Exception {
         for (LimitTimesRule rule : ruleCache.getLimitTimesRules()) {
-            Map<Sample, Date> result = mongodbClient.loadLimitTimesRuleOffenders(rule.getName());
+            Map<Sample, Date> result = mongodbClient.loadRuleOffenders(rule.getName(), RuleTypeEnum.LimitTimesRule);
+            offenders.put(rule.getName(), result);
+        }
+        for (BlacklistRule rule : ruleCache.getBlacklistRules()) {
+            Map<Sample, Date> result = mongodbClient.loadRuleOffenders(rule.getName(), RuleTypeEnum.BlacklistRule);
             offenders.put(rule.getName(), result);
         }
     }
@@ -46,7 +49,8 @@ public class LimitTimesRuleOffenderCache implements Cache {
     }
 
     public void reload( String ruleName ) throws Exception {
-        Map<Sample, Date> result = mongodbClient.loadLimitTimesRuleOffenders(ruleName);
+        AbstractRule rule = ruleCache.locate(ruleName);
+        Map<Sample, Date> result = mongodbClient.loadRuleOffenders(ruleName, rule.type());
         offenders.put(ruleName, result);
     }
 }

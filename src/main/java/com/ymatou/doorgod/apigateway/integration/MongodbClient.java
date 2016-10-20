@@ -2,6 +2,7 @@ package com.ymatou.doorgod.apigateway.integration;
 
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.model.RuleTypeEnum;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -44,7 +47,20 @@ public class MongodbClient {
     }
 
 
-    public Map<Sample, Date> loadLimitTimesRuleOffenders(String ruleName ) throws Exception {
+    public Map<Sample, Date> loadRuleOffenders(String ruleName, RuleTypeEnum ruleType ) throws Exception {
+
+        String collectionName = null;
+        switch (ruleType) {
+            case LimitTimesRule:
+                collectionName = Constants.COLLECTION_LIMIT_TIMES_RULE_OFFENDER;
+                break;
+            case BlacklistRule:
+                collectionName = Constants.COLLECTION_BLACLIST_RULE_OFFENDER;
+                break;
+            default:
+                throw new RuntimeException("Unknown rule type:" + ruleType);
+
+        }
 
         Map<Sample, Date> result = new HashMap<Sample, Date >();
 
@@ -59,7 +75,7 @@ public class MongodbClient {
         Throwable[] throwables = new Throwable[]{null};
 
 
-        mongoClient.findWithOptions(Constants.COLLECTION_LIMIT_TIMES_RULE_OFFENDER,
+        mongoClient.findWithOptions(collectionName,
                 query,
                 findOptions,
                 event -> {
@@ -99,50 +115,6 @@ public class MongodbClient {
         return result;
     }
 
-
-
-    public Set<Sample> loadBlacklistRuleOffenders(String ruleName ) throws Exception {
-
-        Set<Sample> result = new HashSet<Sample>();
-
-        FindOptions findOptions = new FindOptions().setLimit(Constants.MAX_OFFENDERS);
-        findOptions.setFields(new JsonObject().put("sample",true));
-        JsonObject query = new JsonObject().put("ruleName", ruleName);
-
-        CountDownLatch latch = new CountDownLatch(1);
-
-        Throwable[] throwables = new Throwable[]{null};
-
-
-        mongoClient.findWithOptions(Constants.COLLECTION_BLACLIST_RULE_OFFENDER,
-                query,
-                findOptions,
-                event -> {
-                    if ( event.succeeded()) {
-                        for ( JsonObject jo : event.result()) {
-                            try {
-                                Sample sample = JSON.parseObject(jo.getString("sample"), Sample.class);
-                                result.add(sample);
-                            } catch (Exception e ) {
-                                LOGGER.error("Failed to parse blacklist rule offender:{}. ruleName:{}", jo, ruleName);
-                            }
-                        }
-                    } else {
-                        throwables[0] = event.cause();
-                    }
-
-                    latch.countDown();
-                }
-        );
-
-        latch.await();
-
-        if ( throwables[0] != null ) {
-            throw new Exception("Failed to load blacklist rule offenders", throwables[0]);
-        }
-
-        return result;
-    }
 
     @PreDestroy
     public void destroy() {

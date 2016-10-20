@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 在Spring Application context启动完毕后，部署Vertx verticles
@@ -29,13 +30,15 @@ public class VertxVerticleDeployer {
 
     public static final String ADDRESS_END_ONE_WARMUP_CONNECTION = "address-end-one-warmup-conn";
 
-    public static final String WARM_UP_SUCCESS_MSG = "ok";
+    public static final String ADDRESS_END_BIND = "address-end-bind";
+
+    public static final String SUCCESS_MSG = "ok";
 
     public static TargetServer targetServer = null;
 
     public static Vertx vertx = null;
 
-    public static volatile boolean success = false;
+    public static volatile boolean startUpSuccess = false;
 
     @Autowired
     private MySqlClient mySqlClient;
@@ -74,13 +77,30 @@ public class VertxVerticleDeployer {
             throw new RuntimeException("Failed to deploy vertx verticles", throwables[0]);
         }
 
+        AtomicReference<Exception> bindExp = new AtomicReference<>();
+        CountDownLatch bindLatch = new CountDownLatch(1);
+        vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_END_BIND, event -> {
+            if ( !SUCCESS_MSG.equals(event.body().toString())) {
+                bindExp.set(new Exception(event.body().toString()));
+            }
+            bindLatch.countDown();
+        });
+
+        //等待http server端口bind完毕
+        bindLatch.await();
+
+        if ( bindExp.get() != null ) {
+            throw bindExp.get();
+        }
+
+
         if ( StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
             boolean[] warmUpSuccess = new boolean[]{false};
 
             CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
 
             vertx.eventBus().consumer(ADDRESS_END_ONE_WARMUP_CONNECTION, event -> {
-                if (event.body().toString().equals(WARM_UP_SUCCESS_MSG)) {
+                if (event.body().toString().equals(SUCCESS_MSG)) {
                     //有一个连接建立成功，即表示warmup成功
                     warmUpSuccess[0] = true;
                 }
@@ -100,7 +120,7 @@ public class VertxVerticleDeployer {
         } else {
             LOGGER.warn("Targe server warmup url not set");
         }
-        success = true;
+        startUpSuccess = true;
         LOGGER.info("Succeed in startup ApiGateway");
     }
 

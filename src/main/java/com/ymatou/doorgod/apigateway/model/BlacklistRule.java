@@ -20,4 +20,9 @@ public class BlacklistRule extends AbstractRule {
     public void setDimensionKeys(Set<String> dimensionKeys) {
         this.dimensionKeys = dimensionKeys;
     }
+
+    @Override
+    public RuleTypeEnum type() {
+        return RuleTypeEnum.BlacklistRule;
+    }
 }

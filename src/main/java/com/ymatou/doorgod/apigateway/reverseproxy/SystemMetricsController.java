@@ -19,7 +19,7 @@ public class SystemMetricsController {
     @RequestMapping("/warmup")
     @ResponseBody
     public String warmup() {
-        if ( VertxVerticleDeployer.success ) {
+        if ( VertxVerticleDeployer.startUpSuccess) {
             return "ok";
         } else {
             return "Vertx verticles not deployed successfully yet";

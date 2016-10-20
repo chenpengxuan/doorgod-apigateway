@@ -2,8 +2,6 @@ package com.ymatou.doorgod.apigateway.cache;
 
 import com.alibaba.fastjson.JSON;
 import com.ymatou.doorgod.apigateway.integration.KafkaRecordListener;
-import com.ymatou.doorgod.apigateway.model.BlacklistRule;
-import com.ymatou.doorgod.apigateway.model.LimitTimesRule;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.DynamicHystrixPropertiesStrategy;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -25,10 +23,7 @@ public class CacheReloader implements KafkaRecordListener {
     private RuleCache ruleCache;
 
     @Autowired
-    private LimitTimesRuleOffenderCache limitTimesRuleOffenderCache;
-
-    @Autowired
-    private BlacklistRuleOffenderCache blacklistRuleOffenderCache;
+    private RuleOffenderCache ruleOffenderCache;
 
     @Autowired
     private HystrixConfigCache hystrixConfigCache;
@@ -53,7 +48,7 @@ public class CacheReloader implements KafkaRecordListener {
             switch (record.topic()) {
                 case Constants.TOPIC_UPDATE_OFFENDER_EVENT:
                     UpdateOffenderEvent event = JSON.parseObject(record.value(), UpdateOffenderEvent.class);
-                    reloadOffenderCache(event.getRuleName());
+                    ruleOffenderCache.reload(event.getRuleName());
                     break;
                 case Constants.TOPIC_UPDATE_RULE_EVENT:
                     ruleCache.reload();
@@ -81,13 +76,4 @@ public class CacheReloader implements KafkaRecordListener {
         }
     }
 
-    private void reloadOffenderCache(  String ruleName ) throws Exception {
-        if ( ruleCache.locate(ruleName) instanceof LimitTimesRule ) {
-            limitTimesRuleOffenderCache.reload(ruleName);
-        } else if (ruleCache.locate(ruleName) instanceof BlacklistRule ) {
-            blacklistRuleOffenderCache.reload(ruleName);
-        } else {
-            LOGGER.error("Unknown rule name in UpdateOffenderEvent from kafka:{}", ruleName);
-        }
-    }
 }
