@@ -29,7 +29,7 @@ public class HttpServerVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
+        AppConfig appConfig = VertxVerticleDeployer.appConfig;
 
         HttpServerOptions options = new HttpServerOptions();
         if ( appConfig.isDebugMode()) {
@@ -44,7 +44,7 @@ public class HttpServerVerticle extends AbstractVerticle {
             registerStartWarmUpHandler(appConfig);
         }
 
-        HystrixConfigCache hystrixConfigCache = SpringContextHolder.getBean(HystrixConfigCache.class);
+        HystrixConfigCache hystrixConfigCache = VertxVerticleDeployer.hystrixConfigCache;
 
 
         server.requestHandler(httpServerReq -> {

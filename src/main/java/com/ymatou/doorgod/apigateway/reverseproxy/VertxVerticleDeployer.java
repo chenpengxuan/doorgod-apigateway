@@ -1,8 +1,14 @@
 package com.ymatou.doorgod.apigateway.reverseproxy;
 
+import com.ymatou.doorgod.apigateway.SpringContextHolder;
+import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
+import com.ymatou.doorgod.apigateway.cache.UriConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
+import com.ymatou.doorgod.apigateway.integration.KafkaClient;
 import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -40,15 +46,29 @@ public class VertxVerticleDeployer {
 
     public static volatile boolean startUpSuccess = false;
 
+    /**
+     * 将非Spring托管的类(主要是vert.x的{@link HttpServerRequestHandler}, {@link HttpServerVerticle}等)需要用到的Spring bean注册到这里
+     * 避免这些类频繁重复调用{@link com.ymatou.doorgod.apigateway.SpringContextHolder#getBean(Class)}
+     */
+    public static HystrixConfigCache hystrixConfigCache;
+    public static FiltersExecutor filtersExecutor;
+    public static DimensionKeyValueFetcher dimensionKeyValueFetcher;
+    public static AppConfig appConfig;
+    public static KafkaClient kafkaClient;
+    public static UriConfigCache uriConfigCache;
+
+
+
+
     @Autowired
     private MySqlClient mySqlClient;
 
-    @Autowired
-    private AppConfig appConfig;
 
     private static Logger LOGGER = LoggerFactory.getLogger(VertxVerticleDeployer.class);
 
     public void deployVerticles() throws Exception {
+
+        registerBeans();
 
         //当前无需更多配置
         VertxOptions vertxOptions = new VertxOptions();
@@ -127,6 +147,18 @@ public class VertxVerticleDeployer {
     @PreDestroy
     public void destroy() {
         vertx.close();
+    }
+
+    /**
+     * 供非Spring托管实例使用Spring bean
+     */
+    private void registerBeans( ) {
+        hystrixConfigCache = SpringContextHolder.getBean(HystrixConfigCache.class);
+        filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
+        dimensionKeyValueFetcher = SpringContextHolder.getBean(DimensionKeyValueFetcher.class);
+        appConfig = SpringContextHolder.getBean(AppConfig.class);
+        kafkaClient = SpringContextHolder.getBean(KafkaClient.class);
+        uriConfigCache = SpringContextHolder.getBean(UriConfigCache.class);
     }
 
 }

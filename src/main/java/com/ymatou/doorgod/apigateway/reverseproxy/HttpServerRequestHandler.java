@@ -38,14 +38,11 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private HttpClient httpClient;
 
-    private DimensionKeyValueFetcher dimensionKeyValueFetcher;
 
 
     public HttpServerRequestHandler(Subscriber<? super Void> subscriber, HttpClient httpClient) {
         this.subscriber = subscriber;
         this.httpClient = httpClient;
-        this.dimensionKeyValueFetcher = SpringContextHolder.getBean(DimensionKeyValueFetcher.class);
-
     }
 
     @Override
@@ -54,7 +51,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         //将当前时间放到请求头，以便统计耗时
         Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_ACCEEP_TIME, "" + System.currentTimeMillis());
 
-        FiltersExecutor filtersExecutor = SpringContextHolder.getBean(FiltersExecutor.class);
+        FiltersExecutor filtersExecutor = VertxVerticleDeployer.filtersExecutor;
 
         //通过Hystrix监控FiltersExecutor性能及TPS等
         HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
@@ -94,7 +91,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                         //TODO: 100-continue case
 
-                        AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
+                        AppConfig appConfig = VertxVerticleDeployer.appConfig;
 
                         Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_ORIG_STATUS_CODE, "" + targetResp.statusCode());
 
@@ -130,7 +127,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             /**
              * 对于明确设置了超时时间的uri,设定超时时间
              */
-            UriConfigCache configCache = SpringContextHolder.getBean(UriConfigCache.class);
+            UriConfigCache configCache = VertxVerticleDeployer.uriConfigCache;
             UriConfig config = configCache.locate(httpServerReq.path().toLowerCase());
             if (config != null && config.getTimeout() > 0) {
                 forwardClientReq.setTimeout(config.getTimeout());
@@ -168,9 +165,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         httpServerReq.response().setChunked(true);
 
-        HystrixConfigCache configCache = SpringContextHolder.getBean(HystrixConfigCache.class);
-
-        HystrixConfig config = configCache.locate(httpServerReq.path().toLowerCase());
+        HystrixConfig config = VertxVerticleDeployer.hystrixConfigCache.locate(httpServerReq.path().toLowerCase());
 
         if (config != null && config.getFallbackStatusCode() != null
                 && config.getFallbackStatusCode() > 0) {
@@ -209,9 +204,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         StatisticItem item = new StatisticItem();
 
         item.setHost(req.headers().get("Host"));
-        item.setIp(dimensionKeyValueFetcher.fetch(DimensionKeyValueFetcher.KEY_NAME_IP, req));
+        item.setIp(VertxVerticleDeployer.dimensionKeyValueFetcher.fetch(DimensionKeyValueFetcher.KEY_NAME_IP, req));
 
-        item.setUri(dimensionKeyValueFetcher.fetchUriToStatis(req));
+        item.setUri(VertxVerticleDeployer.dimensionKeyValueFetcher.fetchUriToStatis(req));
 
         item.setReqTime(Utils.getTimeStr(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME))));
 
@@ -248,13 +243,12 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
                 item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
 
-        AppConfig appConfig = SpringContextHolder.getBean(AppConfig.class);
+        AppConfig appConfig = VertxVerticleDeployer.appConfig;
         if ( appConfig.isDebugMode()) {
             Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
         }
 
-        KafkaClient kafkaClient = SpringContextHolder.getBean(KafkaClient.class);
-        kafkaClient.sendStatisticItem(item);
+        VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
     }
 
     public String buildHeadersStr(MultiMap headers ) {
