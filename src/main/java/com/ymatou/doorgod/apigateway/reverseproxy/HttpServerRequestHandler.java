@@ -208,13 +208,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         item.setUri(VertxVerticleDeployer.dimensionKeyValueFetcher.fetchUriToStatis(req));
 
-        item.setReqTime(Utils.getTimeStr(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME))));
+        //时间转换会成为耗CPU的热点方法，此处直接用当前毫秒数，由消费者去转换
+        item.setReqTime("" + Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME)));
 
-        String sampleStr = Utils.getDoorGodHeader(req, Constants.HEADER_SAMPLE);
-        //当直接被Hystrix拦截时，是没有Sample的
-        if (StringUtils.hasText(sampleStr)) {
-            item.setSample(JSON.parseObject(sampleStr, Sample.class));
-        }
+        item.setSample(Utils.getDoorGodHeader(req, Constants.HEADER_SAMPLE));
 
         item.setConsumedTime(System.currentTimeMillis() - Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME)));
         item.setHitRule(Utils.getDoorGodHeader(req, Constants.HEADER_HIT_RULE));

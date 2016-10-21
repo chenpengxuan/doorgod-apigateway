@@ -29,7 +29,6 @@ public class UtilsTest {
         System.out.println( JSON.toJSONString(item));
 
         long milliSeconds = System.currentTimeMillis();
-        System.out.println( Utils.getTimeStr(milliSeconds));
         System.out.println( Utils.getCurrentTimeStr());
 
 

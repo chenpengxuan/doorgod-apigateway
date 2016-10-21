@@ -96,7 +96,7 @@
 		</rollingPolicy>
 		<encoder>
 			<charset>${charset}</charset>
-			<pattern>${pattern}</pattern>
+			<pattern>%date - %msg%n</pattern>
 			<immediateFlush>${immediateFlush}</immediateFlush>
 		</encoder>
 	</appender>
@@ -116,7 +116,7 @@
 		</rollingPolicy>
 		<encoder>
 			<charset>${charset}</charset>
-			<pattern>${pattern}</pattern>
+			<pattern>%date - %msg%n</pattern>
 			<immediateFlush>${immediateFlush}</immediateFlush>
 		</encoder>
 	</appender>

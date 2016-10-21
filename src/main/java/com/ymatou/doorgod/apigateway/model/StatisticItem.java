@@ -11,9 +11,12 @@ public class StatisticItem {
 
     private String uri;
 
-    private Sample sample;
+    /**
+     * {@link Sample}的json
+     */
+    private String sample;
 
-    //请求时间:yyyyMMddHHmmss
+    //请求时间:请求接收时刻的毫秒数
     private String reqTime;
 
     //耗时:以毫秒为单位
@@ -38,11 +41,11 @@ public class StatisticItem {
 
     private Set<String> matchRules = new HashSet<>();
 
-    public Sample getSample() {
+    public String getSample() {
         return sample;
     }
 
-    public void setSample(Sample sample) {
+    public void setSample(String sample) {
         this.sample = sample;
     }
 

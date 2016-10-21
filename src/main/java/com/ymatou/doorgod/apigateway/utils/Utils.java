@@ -61,12 +61,6 @@ public class Utils {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
 
-    public static String getTimeStr(long timeInMillisencods) {
-        Instant instant = Instant.ofEpochMilli(timeInMillisencods);
-        LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneOffset.systemDefault());
-        return ldt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-    }
-
     public static Date parseDate( String date ) {
         LocalDateTime localDateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());

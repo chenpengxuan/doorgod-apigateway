@@ -25,7 +25,7 @@
 	</logger>
 	-
 
-	<logger name="com.ymatou.tradeservice">
+	<logger name="com.ymatou.doorgod">
 		<level value="${level}" />
 	</logger>
 
