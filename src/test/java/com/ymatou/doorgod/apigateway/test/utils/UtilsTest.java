@@ -24,7 +24,7 @@ public class UtilsTest {
         System.out.println( json );
 
         StatisticItem item = new StatisticItem();
-        item.setSample(sample);
+        item.setSample(JSON.toJSONString(sample));
 
         System.out.println( JSON.toJSONString(item));
 
