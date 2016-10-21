@@ -224,7 +224,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         item.setStatusCode(req.response().getStatusCode());
         item.setFilterConsumedTime(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME)));
 
-        String origStatusCode = req.headers().get(Utils.getDoorGodHeader(req, Constants.HEADER_ORIG_STATUS_CODE));
+        String origStatusCode = Utils.getDoorGodHeader(req, Constants.HEADER_ORIG_STATUS_CODE);
         if ( StringUtils.hasText(origStatusCode)) {
             item.setOrigStatusCode(Integer.valueOf(origStatusCode));
         }
