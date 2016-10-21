@@ -225,7 +225,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             item.setOrigStatusCode(Integer.valueOf(origStatusCode));
         }
 
-        item.setMatchRules(JSON.parseObject(Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME), Set.class));
+        item.setMatchRules(Utils.getDoorGodHeaderAll(req, Constants.HEADER_MATCH_RULES));
 
         return item;
     }

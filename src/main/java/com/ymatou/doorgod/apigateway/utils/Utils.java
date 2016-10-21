@@ -4,6 +4,7 @@ import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import java.util.List;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -120,6 +121,11 @@ public class Utils {
     public static String getDoorGodHeader(HttpServerRequest req, String headerWithoutPrefix ) {
         String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
         return req.headers().get(buildFullDoorGodHeaderName(headerWithoutPrefix));
+    }
+
+    public static List<String> getDoorGodHeaderAll(HttpServerRequest req, String headerWithoutPrefix ) {
+        String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
+        return req.headers().getAll(buildFullDoorGodHeaderName(headerWithoutPrefix));
     }
 
     public static boolean containDoorGodHeader( HttpServerRequest req, String headerWithoutPrefix) {

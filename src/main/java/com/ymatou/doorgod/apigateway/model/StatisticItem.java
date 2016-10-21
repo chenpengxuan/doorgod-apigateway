@@ -1,5 +1,8 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import java.util.List;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +42,7 @@ public class StatisticItem {
 
     private String ip;
 
-    private Set<String> matchRules = new HashSet<>();
+    private List<String> matchRules = new ArrayList<String>();
 
     public String getSample() {
         return sample;
@@ -138,11 +141,11 @@ public class StatisticItem {
         this.ip = ip;
     }
 
-    public Set<String> getMatchRules() {
+    public List<String> getMatchRules() {
         return matchRules;
     }
 
-    public void setMatchRules(Set<String> matchRules) {
+    public void setMatchRules(List<String> matchRules) {
         this.matchRules = matchRules;
     }
 }
