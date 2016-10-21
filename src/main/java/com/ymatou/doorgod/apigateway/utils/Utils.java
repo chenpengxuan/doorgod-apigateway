@@ -118,6 +118,11 @@ public class Utils {
         req.headers().add(header, value);
     }
 
+    public static void addDoorGodHeader( HttpServerRequest req, String headerWithoutPrefix, List<String> values) {
+        String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
+        req.headers().add(header, values);
+    }
+
     public static String getDoorGodHeader(HttpServerRequest req, String headerWithoutPrefix ) {
         String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
         return req.headers().get(buildFullDoorGodHeaderName(headerWithoutPrefix));

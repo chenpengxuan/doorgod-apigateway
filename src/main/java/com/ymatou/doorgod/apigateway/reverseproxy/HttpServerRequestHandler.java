@@ -61,7 +61,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_SAMPLE,
                     JSON.toJSONString(filterContext.sample));
             Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_MATCH_RULES,
-                    JSON.toJSONString(filterContext.matchedRuleNames));
+                    filterContext.matchedRuleNames);
 
             //将Filters耗时放置到报文头
             Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_FILTER_CONSUME_TIME,
