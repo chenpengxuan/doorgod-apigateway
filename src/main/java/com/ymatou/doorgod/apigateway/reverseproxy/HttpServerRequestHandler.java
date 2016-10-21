@@ -19,6 +19,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.HeadersAdaptor;
+import io.vertx.core.streams.Pump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -111,6 +112,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         targetResp.handler(data -> {
                             httpServerReq.response().write(data);
                         });
+
+                        //Pump.pump(targetResp, httpServerReq.response());
+
                         targetResp.exceptionHandler(throwable -> {
                             LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                             httpServerReq.response().setStatusCode(500);

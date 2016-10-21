@@ -125,12 +125,12 @@ public class Utils {
 
     public static String getDoorGodHeader(HttpServerRequest req, String headerWithoutPrefix ) {
         String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
-        return req.headers().get(buildFullDoorGodHeaderName(headerWithoutPrefix));
+        return req.headers().get(header);
     }
 
     public static List<String> getDoorGodHeaderAll(HttpServerRequest req, String headerWithoutPrefix ) {
         String header = buildFullDoorGodHeaderName(headerWithoutPrefix);
-        return req.headers().getAll(buildFullDoorGodHeaderName(headerWithoutPrefix));
+        return req.headers().getAll(header);
     }
 
     public static boolean containDoorGodHeader( HttpServerRequest req, String headerWithoutPrefix) {
