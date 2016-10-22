@@ -1,12 +1,12 @@
 package com.ymatou.doorgod.apigateway.reverseproxy;
 
 import com.alibaba.fastjson.JSON;
-import com.ymatou.doorgod.apigateway.SpringContextHolder;
-import com.ymatou.doorgod.apigateway.cache.HystrixConfigCache;
 import com.ymatou.doorgod.apigateway.cache.UriConfigCache;
 import com.ymatou.doorgod.apigateway.config.AppConfig;
-import com.ymatou.doorgod.apigateway.integration.KafkaClient;
-import com.ymatou.doorgod.apigateway.model.*;
+import com.ymatou.doorgod.apigateway.model.HystrixConfig;
+import com.ymatou.doorgod.apigateway.model.StatisticItem;
+import com.ymatou.doorgod.apigateway.model.TargetServer;
+import com.ymatou.doorgod.apigateway.model.UriConfig;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
 import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
@@ -19,7 +19,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.HeadersAdaptor;
-import io.vertx.core.streams.Pump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -113,8 +112,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                             httpServerReq.response().write(data);
                         });
 
-                        //Pump.pump(targetResp, httpServerReq.response());
-
                         targetResp.exceptionHandler(throwable -> {
                             LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                             httpServerReq.response().setStatusCode(500);
@@ -124,6 +121,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         targetResp.endHandler((v) -> {
                             onCompleted(httpServerReq);
                         });
+
                     });
 
             forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq.headers()));
@@ -141,6 +139,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             httpServerReq.handler(data -> {
                 forwardClientReq.write(data);
             });
+
 
             forwardClientReq.exceptionHandler(throwable -> {
                 LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);

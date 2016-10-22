@@ -106,19 +106,20 @@ public class KafkaClient {
                                 //都是缓存刷新消息，不频繁。日志输出，便于问题确认/分析
                                 LOGGER.info("Recv kafka message:{}", record);
                                 kafkaRecordListener.onRecordReceived(record);
+
+                                /**
+                                 * 手动向Kafka确认那些消息已被成功消费。确保没有消息被漏消费。
+                                 */
+                                consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(
+                                                record.offset() + 1)),
+                                        (offsets, exception) -> {
+                                            if (exception != null) {
+                                                LOGGER.error("Failed to commit kafaka offsets:{}", offsets, exception);
+                                            }
+                                        });
                             }
 
-                            /**
-                             * 手动向Kafka确认那些消息已被成功消费。确保没有消息被漏消费。
-                             * 存在消息被重复消费的case。例如<code>kafkaRecordListener.onRecordReceived()</code>消费失败，抛异常。
-                             */
-                            consumer.commitAsync(Collections.singletonMap(partition, new OffsetAndMetadata(
-                                            partitionRecords.get(partitionRecords.size() - 1).offset() + 1)),
-                                    (offsets, exception) -> {
-                                        if (exception != null) {
-                                            LOGGER.error("Failed to commit kafaka offsets:{}", offsets, exception);
-                                        }
-                                    });
+
                         } catch (Exception e) {
                             //一个Partition消费异常，继续去消费别的Partition
                             LOGGER.error("Failed to consume kafka message", e);

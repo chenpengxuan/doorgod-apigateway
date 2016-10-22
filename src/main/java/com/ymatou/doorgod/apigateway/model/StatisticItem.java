@@ -1,10 +1,7 @@
 package com.ymatou.doorgod.apigateway.model;
 
-import java.util.List;
-
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * 发送给决策引擎的统计单元。一个http请求一个
