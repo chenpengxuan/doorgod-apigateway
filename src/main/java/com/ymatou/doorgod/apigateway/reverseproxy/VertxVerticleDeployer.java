@@ -117,25 +117,25 @@ public class VertxVerticleDeployer {
         if ( StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
             boolean[] warmUpSuccess = new boolean[]{false};
 
-            CountDownLatch warmupLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
+            CountDownLatch createConnsLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
 
             vertx.eventBus().consumer(ADDRESS_END_ONE_WARMUP_CONNECTION, event -> {
                 if (event.body().toString().equals(SUCCESS_MSG)) {
                     //有一个连接建立成功，即表示warmup成功
                     warmUpSuccess[0] = true;
                 }
-                warmupLatch.countDown();
+                createConnsLatch.countDown();
             });
 
-            LOGGER.info("Creating connection to target server:{} in advance.", targetServer);
+            LOGGER.info("Creating {} connections to target server:{} in advance.", createConnsLatch.getCount(), targetServer);
 
             //通知各个Verticle去预创建到TargetServer的连接
             vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
 
             //等待各个Verticle预创建连接完毕
-            warmupLatch.await();
+            createConnsLatch.await();
 
-            LOGGER.info("Finished in creating connection to target server.");
+            LOGGER.info("Finished in creating connections to target server.");
 
             if (!warmUpSuccess[0]) {
                 throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
@@ -145,7 +145,9 @@ public class VertxVerticleDeployer {
             LOGGER.warn("Targe server warmup url not set");
         }
         startUpSuccess = true;
-        LOGGER.info("Succeed in startup ApiGateway. Event loop thread count:{}", VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
+        LOGGER.info("Succeed in startup ApiGateway. CPU cores:{}, Event loop thread count:{}",
+                Runtime.getRuntime().availableProcessors(),
+                VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
     }
 
     @PreDestroy

@@ -33,12 +33,12 @@ public class UriConfigCache implements Cache {
     @Override
     public void reload() throws Exception {
 
-        List<UriConfig> configs = mySqlClient.loadUriConfigs();
+        List<UriConfig> reloaded = mySqlClient.loadUriConfigs();
 
         //uri长的在前面
-        Collections.sort(configs);
+        Collections.sort(reloaded);
 
-        this.configs = configs;
+        this.configs = reloaded;
 
         if (uriToConfigCache == null) {
             uriToConfigCache = CacheBuilder.newBuilder()

@@ -34,12 +34,12 @@ public class HystrixConfigCache implements Cache {
     @Override
     public void reload() throws Exception {
 
-        List<HystrixConfig> configs = mySqlClient.loadHystrixConfigs();
+        List<HystrixConfig> reloadeds = mySqlClient.loadHystrixConfigs();
 
         //uri长的在前面
-        Collections.sort(configs);
+        Collections.sort(reloadeds);
 
-        this.configs = configs;
+        this.configs = reloadeds;
 
         if (uriToHystrixConfigCache == null) {
             uriToHystrixConfigCache = CacheBuilder.newBuilder()

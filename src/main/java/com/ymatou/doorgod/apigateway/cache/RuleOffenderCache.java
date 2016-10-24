@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by tuwenjie on 2016/9/8.
@@ -28,7 +29,7 @@ public class RuleOffenderCache implements Cache {
      *    key: sample
      *    value: releaseDate: 释放时间（即被允许下次访问的时间）
      */
-    private Map<String, Map<Sample, Date>> offenders = new HashMap<>( );
+    private Map<String, Map<Sample, Date>> offenders = new ConcurrentHashMap<>();
 
     @PostConstruct
     @Override

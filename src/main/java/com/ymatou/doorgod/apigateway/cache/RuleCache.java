@@ -46,10 +46,16 @@ public class RuleCache implements Cache {
 
         Set<AbstractRule> result = mySqlClient.loadAllRules();
 
+        List<BlacklistRule> reloadedBlacklistRules = new ArrayList<BlacklistRule>();
+        List<LimitTimesRule> reloadedLimitTimesRules = new ArrayList<LimitTimesRule>();
+
         result.stream().filter(rule-> rule instanceof BlacklistRule).sorted().forEach(
-                rule -> blacklistRules.add((BlacklistRule)rule));
+                rule -> reloadedBlacklistRules.add((BlacklistRule)rule));
         result.stream().filter(rule-> rule instanceof LimitTimesRule).sorted().forEach(
-                rule -> limitTimesRules.add((LimitTimesRule)rule));
+                rule -> reloadedLimitTimesRules.add((LimitTimesRule)rule));
+
+        this.blacklistRules = reloadedBlacklistRules;
+        this.limitTimesRules = reloadedLimitTimesRules;
 
         fillDimensionKeys();
 
@@ -113,8 +119,11 @@ public class RuleCache implements Cache {
     }
 
     private void buildNameToRules( ) {
+        Map<String, AbstractRule> nameToRules = new HashMap<String, AbstractRule>( );
         blacklistRules.stream().forEach(rule -> nameToRules.put(rule.getName(), rule));
         limitTimesRules.stream().forEach(rule -> nameToRules.put(rule.getName(), rule));
+
+        this.nameToRules = nameToRules;
     }
 
     public AbstractRule locate( String ruleName ) {
