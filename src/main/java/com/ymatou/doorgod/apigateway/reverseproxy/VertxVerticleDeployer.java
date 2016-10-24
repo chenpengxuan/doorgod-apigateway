@@ -127,11 +127,15 @@ public class VertxVerticleDeployer {
                 warmupLatch.countDown();
             });
 
+            LOGGER.info("Creating connection to target server:{} in advance.", targetServer);
+
             //通知各个Verticle去预创建到TargetServer的连接
             vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
 
             //等待各个Verticle预创建连接完毕
             warmupLatch.await();
+
+            LOGGER.info("Finished in creating connection to target server.");
 
             if (!warmUpSuccess[0]) {
                 throw new RuntimeException("Failed to startup ApiGateway because warmming up target server failed.");
@@ -141,7 +145,7 @@ public class VertxVerticleDeployer {
             LOGGER.warn("Targe server warmup url not set");
         }
         startUpSuccess = true;
-        LOGGER.info("Succeed in startup ApiGateway");
+        LOGGER.info("Succeed in startup ApiGateway. Event loop thread count:{}", VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
     }
 
     @PreDestroy

@@ -25,15 +25,15 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Filt
 
     private FiltersExecutor filtersExecutor;
 
-    public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq ) {
+    public HystrixFiltersExecutorCommand(FiltersExecutor filtersExecutor, HttpServerRequest httpServerReq) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("ApiGateway"))
-            .andCommandKey(HystrixCommandKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
-            .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                //filters自身永不被Hystrix熔断
-                .withCircuitBreakerEnabled(false)
-                .withExecutionTimeoutEnabled(false)
-                .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)
-                .withRequestLogEnabled(false)));
+                .andCommandKey(HystrixCommandKey.Factory.asKey(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR))
+                .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
+                        //filters自身永不被Hystrix熔断
+                        .withCircuitBreakerEnabled(false)
+                        .withExecutionTimeoutEnabled(false)
+                        .withExecutionIsolationSemaphoreMaxConcurrentRequests(Integer.MAX_VALUE)
+                        .withRequestLogEnabled(false)));
         this.filtersExecutor = filtersExecutor;
         this.httpServerReq = httpServerReq;
     }
@@ -43,17 +43,13 @@ public class HystrixFiltersExecutorCommand extends HystrixObservableCommand<Filt
         return Observable.create(new Observable.OnSubscribe<FilterContext>() {
             @Override
             public void call(Subscriber<? super FilterContext> subscriber) {
-                try {
-                    if (!subscriber.isUnsubscribed()) {
-                        FilterContext context = filtersExecutor.pass(httpServerReq);
-                        subscriber.onNext(context);
-                        subscriber.onCompleted();
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to execute filters for reverseproxy req {}:{}", httpServerReq.method(), httpServerReq.path(), e);
-                    subscriber.onError(e);
+                if (!subscriber.isUnsubscribed()) {
+                    FilterContext context = filtersExecutor.pass(httpServerReq);
+                    subscriber.onNext(context);
+                    subscriber.onCompleted();
                 }
+
             }
-        } );
+        });
     }
 }

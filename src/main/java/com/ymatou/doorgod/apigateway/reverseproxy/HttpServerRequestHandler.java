@@ -81,7 +81,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     private void process(HttpServerRequest httpServerReq) {
         if (Utils.containDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER)) {
-            fallback(httpServerReq, "Rejected by filters");
+            httpServerReq.response().setStatusCode(403);
+            httpServerReq.response().setChunked(true);
+            httpServerReq.response().write("Forbbidden by Api Gateway filters");
+            onCompleted(httpServerReq);
         } else {
             TargetServer targetServer = VertxVerticleDeployer.targetServer;
             HttpClientRequest forwardClientReq = httpClient.request(httpServerReq.method(), targetServer.getPort(),
@@ -146,13 +149,13 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 httpServerReq.response().setChunked(true);
                 if (throwable instanceof java.net.ConnectException) {
                     httpServerReq.response().setStatusCode(408);
-                    httpServerReq.response().write("ApiGateway:failed to connect target service");
+                    httpServerReq.response().setStatusMessage("ApiGateway: Failed to connect target server");
                 } else if (throwable instanceof java.util.concurrent.TimeoutException) {
                     httpServerReq.response().setStatusCode(504);
-                    httpServerReq.response().write("ApiGateway:target service timeout");
+                    httpServerReq.response().setStatusMessage("ApiGateway: Target server timeout");
                 } else {
                     httpServerReq.response().setStatusCode(503);
-                    httpServerReq.response().write("ApiGateway:Exception in forwarding request");
+                    httpServerReq.response().setStatusMessage("ApiGateway: Exception in requesting target server");
                 }
 
                 onError(httpServerReq, new Exception(throwable));
@@ -164,7 +167,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
 
-    public void fallback(HttpServerRequest httpServerReq, String reason) {
+    public void fallback(HttpServerRequest httpServerReq ) {
 
         httpServerReq.response().setChunked(true);
 
@@ -177,8 +180,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 httpServerReq.response().write(config.getFallbackBody());
             }
         } else {
-            httpServerReq.response().setStatusCode(403);
-            httpServerReq.response().write("ApiGateway: request is rejected." + reason);
+            if ( httpServerReq.response().getStatusCode() == 200 ) {
+                //如果statusCode还没设，统一设定为403
+                httpServerReq.response().setStatusCode(403);
+                httpServerReq.response().setStatusMessage("ApiGateway: Forbidden");
+            }
+            if ( httpServerReq.response().getStatusMessage() != null ) {
+                httpServerReq.response().write(httpServerReq.response().getStatusMessage());
+            }
         }
 
         onCompleted(httpServerReq);
@@ -195,15 +204,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     public void onError(HttpServerRequest req, Throwable t) {
         if (subscriber == null) {
-            sendStatisticItem(req);
-            req.response().end();
-        } else if (subscriber != null) {
+            fallback(req);
+        } else {
             //交由Hystrix fallback处理
             subscriber.onError(t);
         }
     }
 
-    public StatisticItem extract( HttpServerRequest req ) {
+    public static StatisticItem extract( HttpServerRequest req ) {
         StatisticItem item = new StatisticItem();
 
         item.setHost(req.headers().get("Host"));
@@ -233,7 +241,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         return item;
     }
 
-    public void sendStatisticItem( HttpServerRequest req ) {
+    public static void  sendStatisticItem( HttpServerRequest req ) {
 
         StatisticItem item = extract(req);
 
@@ -251,7 +259,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
     }
 
-    public String buildHeadersStr(MultiMap headers ) {
+    public static String buildHeadersStr(MultiMap headers ) {
         StringBuilder sb = new StringBuilder();
         Set<String> names = headers.names();
         for ( String name : names ) {
@@ -261,7 +269,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
 
-    public MultiMap clearDoorgodHeads( MultiMap headers ) {
+    public static MultiMap clearDoorgodHeads( MultiMap headers ) {
         MultiMap result = new HeadersAdaptor(new DefaultHttpHeaders());
         Set<String> names = headers.names();
         for ( String name : names ) {

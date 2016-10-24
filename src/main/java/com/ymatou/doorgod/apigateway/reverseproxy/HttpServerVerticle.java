@@ -90,15 +90,12 @@ public class HttpServerVerticle extends AbstractVerticle {
 
             TargetServer ts = VertxVerticleDeployer.targetServer;
 
-            LOGGER.info("warmming up target server {} for vertice {}...", ts, this);
-
             //预加载到目标服务器，譬如Nginx的连接
             for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
                 HttpClientRequest req = httpClient.get(ts.getPort(), ts.getHost(),
                         appConfig.getTargetServerWarmupUri().trim(),
                         targetResp -> {
                             targetResp.endHandler(v -> {
-                                LOGGER.info("Succeeded in warmming up one connection of target server {}. verticle:{}", ts, this);
                                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
                             });
                             targetResp.exceptionHandler(throwable -> {
