@@ -253,21 +253,25 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
     public static void  sendStatisticItem( HttpServerRequest req ) {
+        try {
+            StatisticItem item = extract(req);
 
-        StatisticItem item = extract(req);
+            Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
+                            "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
+                    item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
+                    item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
+                    item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
 
-        Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
-                "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
-                 item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
-                item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
-                item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
+            AppConfig appConfig = VertxVerticleDeployer.appConfig;
+            if (appConfig.isDebugMode()) {
+                Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
+            }
 
-        AppConfig appConfig = VertxVerticleDeployer.appConfig;
-        if ( appConfig.isDebugMode()) {
-            Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
+            VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
+        } catch (Exception t ) {
+            //一种保护机制，构造/发送StatisticItem不影响响应的正常返回
+            LOGGER.error("Failed to send StatisticItem for req:{}", req.host() + req.path());
         }
-
-        VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
     }
 
     public static String buildHeadersStr(MultiMap headers ) {
