@@ -220,16 +220,27 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         item.setUri(VertxVerticleDeployer.dimensionKeyValueFetcher.fetchUriToStatis(req));
 
         //时间转换会成为耗CPU的热点方法，此处直接用当前毫秒数，由消费者去转换
-        item.setReqTime("" + Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME)));
+        String headerAcceptTime = Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME);
+        if ( StringUtils.hasText(headerAcceptTime) ) {
+            item.setReqTime( headerAcceptTime);
+        } else {
+            //被Hystrix直接拦的情形下，请求接收时间还没来得及放置到Header
+            item.setReqTime("" + System.currentTimeMillis());
+        }
 
         item.setSample(Utils.getDoorGodHeader(req, Constants.HEADER_SAMPLE));
 
-        item.setConsumedTime(System.currentTimeMillis() - Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_ACCEEP_TIME)));
+        item.setConsumedTime(System.currentTimeMillis() - Long.valueOf(item.getReqTime()));
         item.setHitRule(Utils.getDoorGodHeader(req, Constants.HEADER_HIT_RULE));
         item.setRejectedByFilter(Boolean.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_REQ_REJECTED_BY_FILTER)));
         item.setRejectedByHystrix(Boolean.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_REJECTED_BY_HYSTRIX)));
         item.setStatusCode(req.response().getStatusCode());
-        item.setFilterConsumedTime(Long.valueOf(Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME)));
+
+        String headerFilterConsumeTime = Utils.getDoorGodHeader(req, Constants.HEADER_FILTER_CONSUME_TIME);
+        if ( StringUtils.hasText(headerFilterConsumeTime)) {
+            //被Hystrix直接拦的情形下，FilterConsumeTime没有放置到Header
+            item.setFilterConsumedTime(Long.valueOf( headerFilterConsumeTime));
+        }
 
         String origStatusCode = Utils.getDoorGodHeader(req, Constants.HEADER_ORIG_STATUS_CODE);
         if ( StringUtils.hasText(origStatusCode)) {

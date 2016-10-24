@@ -32,9 +32,9 @@ public class VertxVerticleDeployer {
     //vertice实例个数
     public static final int VERTICLE_INSTANCES = VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE;
 
-    public static final String ADDRESS_START_WARMUP_TARGET_SERVER = "address-start-warmup";
+    public static final String ADDRESS_START_PRE_CONNECT_TARGET_SERVER = "address-start-connect";
 
-    public static final String ADDRESS_END_ONE_WARMUP_CONNECTION = "address-end-one-warmup-conn";
+    public static final String ADDRESS_END_ONE_PRE_CONNECTION = "address-end-one-connection";
 
     public static final String ADDRESS_END_BIND = "address-end-bind";
 
@@ -76,41 +76,43 @@ public class VertxVerticleDeployer {
 
         targetServer = mySqlClient.locateTargetServer();
 
-        CountDownLatch latch = new CountDownLatch(1);
+        //监听Vertx http server端口绑定完毕
+        AtomicReference<Exception> bindException = new AtomicReference<>();
+        CountDownLatch bindLatch = new CountDownLatch(1);
+        vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_END_BIND, event -> {
+            if ( !SUCCESS_MSG.equals(event.body().toString())) {
+                bindException.set(new Exception(event.body().toString()));
+            }
+            bindLatch.countDown();
+        });
 
-        Throwable[] throwables = new Throwable[]{null};
+        //监听Vertx verticles启动完毕
+        CountDownLatch deployLatch = new CountDownLatch(1);
+        AtomicReference<Throwable> deployException = new AtomicReference<>();
 
         vertx.deployVerticle(HttpServerVerticle.class.getName(),
                 new DeploymentOptions().setInstances(VERTICLE_INSTANCES),
                 result -> {
                     if (result.failed()) {
-                        throwables[0] = result.cause();
+                        deployException.set(result.cause());
                     }
-                    latch.countDown();
+                    deployLatch.countDown();
                 });
 
         //等待Verticles部署完成
-        latch.await();
+        deployLatch.await();
 
 
-        if (throwables[0] != null) {
-            throw new RuntimeException("Failed to deploy vertx verticles", throwables[0]);
+        if (deployException.get() != null) {
+            throw new RuntimeException("Failed to deploy vertx verticles", deployException.get());
         }
 
-        AtomicReference<Exception> bindExp = new AtomicReference<>();
-        CountDownLatch bindLatch = new CountDownLatch(1);
-        vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_END_BIND, event -> {
-            if ( !SUCCESS_MSG.equals(event.body().toString())) {
-                bindExp.set(new Exception(event.body().toString()));
-            }
-            bindLatch.countDown();
-        });
 
         //等待http server端口bind完毕
         bindLatch.await();
 
-        if ( bindExp.get() != null ) {
-            throw bindExp.get();
+        if ( bindException.get() != null ) {
+            throw bindException.get();
         }
 
 
@@ -119,7 +121,7 @@ public class VertxVerticleDeployer {
 
             CountDownLatch createConnsLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
 
-            vertx.eventBus().consumer(ADDRESS_END_ONE_WARMUP_CONNECTION, event -> {
+            vertx.eventBus().consumer(ADDRESS_END_ONE_PRE_CONNECTION, event -> {
                 if (event.body().toString().equals(SUCCESS_MSG)) {
                     //有一个连接建立成功，即表示warmup成功
                     warmUpSuccess[0] = true;
@@ -130,7 +132,7 @@ public class VertxVerticleDeployer {
             LOGGER.info("Creating {} connections to target server:{} in advance.", createConnsLatch.getCount(), targetServer);
 
             //通知各个Verticle去预创建到TargetServer的连接
-            vertx.eventBus().publish(ADDRESS_START_WARMUP_TARGET_SERVER, "");
+            vertx.eventBus().publish(ADDRESS_START_PRE_CONNECT_TARGET_SERVER, "");
 
             //等待各个Verticle预创建连接完毕
             createConnsLatch.await();

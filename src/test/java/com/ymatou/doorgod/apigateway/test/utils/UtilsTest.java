@@ -17,6 +17,9 @@ public class UtilsTest {
 
     @Test
     public void testJson( ) {
+
+        System.out.println( JSON.toJSONString(null));
+
         Sample sample = new Sample();
         sample.addDimensionValue("ip", "129.19.90.99");
 

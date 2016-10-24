@@ -40,7 +40,7 @@ public class HttpServerVerticle extends AbstractVerticle {
         buildHttpClient(appConfig);
 
         if (StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
-            registerStartWarmUpHandler(appConfig);
+            registerCreatePreConnectionHandler(appConfig);
         }
 
         HystrixConfigCache hystrixConfigCache = VertxVerticleDeployer.hystrixConfigCache;
@@ -83,9 +83,9 @@ public class HttpServerVerticle extends AbstractVerticle {
     }
 
 
-    private void registerStartWarmUpHandler(AppConfig appConfig) {
+    private void registerCreatePreConnectionHandler(AppConfig appConfig) {
         //用于系统启动时，预创建到目标服务器（譬如Nginx）的连接
-        vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_START_WARMUP_TARGET_SERVER, event -> {
+        vertx.eventBus().consumer(VertxVerticleDeployer.ADDRESS_START_PRE_CONNECT_TARGET_SERVER, event -> {
 
 
             TargetServer ts = VertxVerticleDeployer.targetServer;
@@ -96,16 +96,16 @@ public class HttpServerVerticle extends AbstractVerticle {
                         appConfig.getTargetServerWarmupUri().trim(),
                         targetResp -> {
                             targetResp.endHandler(v -> {
-                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
                             });
                             targetResp.exceptionHandler(throwable -> {
                                 LOGGER.error("Failed to warm up target server.", throwable);
-                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, "fail");
+                                vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, "fail");
                             });
                         });
                 req.exceptionHandler(throwable -> {
                     LOGGER.error("Failed to warm up target server.", throwable);
-                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_WARMUP_CONNECTION, "fail");
+                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, "fail");
                 });
                 req.end();
             }
