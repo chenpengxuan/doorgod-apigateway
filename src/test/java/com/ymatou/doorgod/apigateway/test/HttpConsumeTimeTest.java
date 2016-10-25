@@ -1,5 +1,9 @@
 package com.ymatou.doorgod.apigateway.test;
 
+import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
+import io.vertx.core.http.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -41,5 +45,22 @@ public class HttpConsumeTimeTest {
             }
         }
         System.out.println("Consumed:" + ((System.currentTimeMillis() - startTime)/loops));
+    }
+
+
+    @Test
+    public void testConsume( ) throws  Exception {
+        Vertx vertx = Vertx.vertx();
+        io.vertx.core.http.HttpClient httpClient = vertx.createHttpClient();
+        HttpClientRequest req = httpClient.requestAbs(HttpMethod.GET, "http://app.ymatou.com/api/home/getnotetopiclistbytopicid?pageindex=1&pagesize=6&topicid=100026",
+                event -> {
+                    event.bodyHandler(buffer -> {
+                        System.out.println( buffer.toString());
+                    });
+                });
+
+        req.end();
+
+        System.in.read();
     }
 }

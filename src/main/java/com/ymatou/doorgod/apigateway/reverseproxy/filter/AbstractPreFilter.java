@@ -21,12 +21,12 @@ public abstract class AbstractPreFilter implements PreFilter {
         boolean result = passable( req, context );
         if ( !result ) {
             context.rejected = true;
-            if ( context.rejectRuleName == null ) {
-                context.rejectRuleName = name( );
+            if ( context.hitRuleName == null ) {
+                context.hitRuleName = name( );
             }
             Constants.REJECT_LOGGER.warn("Request:{} is rejected by ruleName:{}, Sample:{}",
                     Utils.buildFullUri(req),
-                    context.rejectRuleName,
+                    context.hitRuleName,
                     context.sample);
 
         }

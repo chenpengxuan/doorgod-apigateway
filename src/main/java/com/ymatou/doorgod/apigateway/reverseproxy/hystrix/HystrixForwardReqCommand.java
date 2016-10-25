@@ -1,6 +1,7 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.hystrix;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
@@ -31,7 +32,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
          * command Hystrix属性通过{@link DynamicHystrixPropertiesStrategy}加载
          */
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey("api.ymatou")).
-                andCommandKey(MyHystrixCommandKeyFactory.asKey(key)));
+                andCommandKey(HystrixCommandKey.Factory.asKey(key)));
         this.httpServerReq = httpServerReq;
         this.httpClient = httpClient;
     }
@@ -110,9 +111,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
 
     public static void forceEnd( HttpServerRequest req) {
         req.response().setChunked(true);
-        req.response().setStatusCode(500);
-        req.response().setStatusMessage("ApiGateway: Unknown Exception");
-        req.response().end();
+        if ( req.response().getStatusCode() == 200 ) {
+            //还没有设错误码，统一设为500
+            req.response().setStatusCode(500);
+            req.response().setStatusMessage("ApiGateway: Unknown Exception");
+        }
+        if ( !req.response().ended()) {
+            req.response().end();
+        }
     }
 
 }

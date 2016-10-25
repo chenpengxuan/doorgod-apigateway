@@ -49,7 +49,9 @@ public class HttpServerVerticle extends AbstractVerticle {
         server.requestHandler(httpServerReq -> {
             HystrixConfig hystrixConfig = hystrixConfigCache.locate(httpServerReq.path().toLowerCase());
             if (hystrixConfig != null) {
-                HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(httpServerReq, httpClient, hystrixConfig.getUri());
+                HystrixForwardReqCommand cmd = new HystrixForwardReqCommand(httpServerReq, httpClient,
+                        //将uri模式作为command key
+                        hystrixConfig.getUri());
                 cmd.observe();
             } else {
                 HttpServerRequestHandler handler = new HttpServerRequestHandler(null, httpClient);

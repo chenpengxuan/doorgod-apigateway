@@ -134,4 +134,8 @@ public class Utils {
     public static String buildFullUri( HttpServerRequest req ) {
         return req.host() + req.uri();
     }
+
+    public static String buildFullPath( HttpServerRequest req ) {
+        return req.host() + req.path();
+    }
 }

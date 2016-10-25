@@ -30,7 +30,7 @@ public class BlacklistRulesFilter extends AbstractPreFilter {
                 Sample sample = context.sample.narrow( rule.getDimensionKeys());
                 Date releaseDate = ruleOffenderCache.locateReleaseDate(rule.getName(), sample);
                 if (releaseDate != null && releaseDate.compareTo(new Date()) >= 0) {
-                    context.rejectRuleName = rule.getName();
+                    context.hitRuleName = rule.getName();
                     return false;
                 }
             }

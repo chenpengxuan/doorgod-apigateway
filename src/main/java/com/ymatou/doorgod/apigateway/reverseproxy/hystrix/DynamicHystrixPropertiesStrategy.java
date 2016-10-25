@@ -82,7 +82,6 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
             setter.withCircuitBreakerForceClosed(config.getForceCircuitBreakerClose());
 
             setter.withCircuitBreakerErrorThresholdPercentage(config.getErrorThresholdPercentageOfCircuitBreaker());
-            //timeout属性已经在Vertx httpclient设定，Hystrix无需再设
         }
 
         return setter;

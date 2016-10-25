@@ -73,7 +73,7 @@ public class FiltersExecutor {
         } catch ( Exception e ) {
             LOGGER.error("Exception in doing filter for reverseproxy request:{}", Utils.buildFullUri(httpReq), e );
             context.rejected = false;
-            context.rejectRuleName = null;
+            context.hitRuleName = null;
         }
 
         return context;

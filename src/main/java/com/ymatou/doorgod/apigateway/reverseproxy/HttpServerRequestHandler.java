@@ -70,7 +70,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER,
                         "true");
                 Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE,
-                        filterContext.rejectRuleName);
+                        filterContext.hitRuleName);
             }
 
         });
@@ -82,6 +82,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     private void process(HttpServerRequest httpServerReq) {
         if (Utils.containDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER)) {
             httpServerReq.response().setStatusCode(403);
+            httpServerReq.response().setStatusMessage("Forbbidden by Api Gateway filters");
             httpServerReq.response().setChunked(true);
             httpServerReq.response().write("Forbbidden by Api Gateway filters");
             onCompleted(httpServerReq);
@@ -138,6 +139,11 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 forwardClientReq.setTimeout(config.getTimeout());
             }
 
+            httpServerReq.exceptionHandler(ex ->{
+                //接收请求过程中异常，此处只记warn日志。客户端可以随意关闭连接等，服务器做不了更多处理，也无需上报异常。
+                LOGGER.warn("Exception in read http req:{}, {}", Utils.buildFullPath(httpServerReq),
+                        ex.getClass().getName() + ":" + ex.getMessage());
+            });
 
             httpServerReq.handler(data -> {
                 forwardClientReq.write(data);

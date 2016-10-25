@@ -32,7 +32,7 @@ public class LimitTimesRulesFilter extends AbstractPreFilter {
                         CollectionUtils.isEmpty(rule.getGroupByKeys()) ? rule.getCountingKeys() : rule.getGroupByKeys());
                 Date releaseDate = ruleOffenderCache.locateReleaseDate(rule.getName(), sample);
                 if (releaseDate != null && releaseDate.compareTo(new Date()) >= 0) {
-                    context.rejectRuleName = rule.getName();
+                    context.hitRuleName = rule.getName();
                     return false;
                 }
             }
