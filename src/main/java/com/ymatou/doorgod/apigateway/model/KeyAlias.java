@@ -1,9 +1,16 @@
 package com.ymatou.doorgod.apigateway.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.security.Key;
+import java.util.regex.Pattern;
+
 /**
  * Created by tuwenjie on 2016/9/18.
  */
 public class KeyAlias extends PrintFriendliness implements Comparable<KeyAlias> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(KeyAlias.class);
     private String uri;
     private String key;
     private String alias;
@@ -60,6 +67,11 @@ public class KeyAlias extends PrintFriendliness implements Comparable<KeyAlias> 
     }
 
     public boolean applicable( String uri ) {
-        return this.uri.startsWith(uri);
+        try {
+            return uri.startsWith(this.uri) || Pattern.matches(this.uri, uri);
+        } catch (Exception e ) {
+            LOGGER.error("Wrong uri pattern {} in KeyAlias config", this.uri, e);
+            return false;
+        }
     }
 }
