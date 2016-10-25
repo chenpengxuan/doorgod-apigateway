@@ -42,8 +42,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
             @Override
             public void call(Subscriber<? super Void> subscriber) {
                 if (!subscriber.isUnsubscribed()) {
-                    HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
-                    handler.handle(httpServerReq);
+                    try {
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
+                        handler.handle(httpServerReq);
+                    } catch (Exception e) {
+                        //should never go here
+                        LOGGER.error("Failed to build Hystrix observable for req:{}", httpServerReq.host() + httpServerReq.path());
+                        forceEnd(httpServerReq);
+                    }
                 }
             }
         });
@@ -78,8 +84,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                 }
 
                 if (!subscriber.isUnsubscribed()) {
-                    HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
-                    handler.fallback(httpServerReq);
+                    try {
+                        HttpServerRequestHandler handler = new HttpServerRequestHandler(subscriber, httpClient);
+                        handler.fallback(httpServerReq);
+                    } catch ( Exception e) {
+                        //should never go here
+                        LOGGER.error("Failed to build Hystrix fallback observable for req:{}", httpServerReq.host() + httpServerReq.path());
+                        forceEnd(httpServerReq);
+                    }
                 }
             }
         });
@@ -93,6 +105,14 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
      */
     public static void removeCommandKey(String commandKey) {
         executionSemaphorePerCircuit.remove(commandKey);
+    }
+
+
+    public static void forceEnd( HttpServerRequest req) {
+        req.response().setChunked(true);
+        req.response().setStatusCode(500);
+        req.response().setStatusMessage("ApiGateway: Unknown Exception");
+        req.response().end();
     }
 
 }
