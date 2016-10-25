@@ -46,7 +46,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
     @Override
     public HystrixCommandProperties getCommandProperties(HystrixCommandKey commandKey, HystrixCommandProperties.Setter builder) {
         if (commandKey.name().equalsIgnoreCase(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR)) {
-            HystrixCommandProperties props =  super.getCommandProperties(commandKey, builder);
+            return super.getCommandProperties(commandKey, builder);
         }
         return commandKeyToProperties.getUnchecked(commandKey);
     }
