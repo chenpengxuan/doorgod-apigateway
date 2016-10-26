@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerRequestHandler.class);
 
     private Subscriber<? super Void> subscriber;
 
@@ -164,7 +164,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
             httpServerReq.exceptionHandler(ex ->{
                 LOGGER.error("Exception in read http req:{}", Utils.buildFullPath(httpServerReq), ex);
-                forwardClientReq.reset();
+                forwardClientReq.end();
             });
 
             httpServerReq.handler(data -> {
