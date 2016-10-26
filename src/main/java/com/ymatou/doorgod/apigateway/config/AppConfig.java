@@ -49,6 +49,9 @@ public class AppConfig {
     @Value("${debugMode}")
     private boolean debugMode;
 
+    @Value("${maxUriLength}")
+    private int maxUriLength;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -151,6 +154,14 @@ public class AppConfig {
 
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
+    }
+
+    public int getMaxUriLength() {
+        return maxUriLength;
+    }
+
+    public void setMaxUriLength(int maxUriLength) {
+        this.maxUriLength = maxUriLength;
     }
 }
 

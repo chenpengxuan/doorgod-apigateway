@@ -49,7 +49,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                     } catch (Exception e) {
                         //should never go here
                         LOGGER.error("Failed to build Hystrix observable for req:{}", httpServerReq.host() + httpServerReq.path());
-                        forceEnd(httpServerReq);
+                        HttpServerRequestHandler.forceEnd(httpServerReq);
                     }
                 }
             }
@@ -91,7 +91,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                     } catch ( Exception e) {
                         //should never go here
                         LOGGER.error("Failed to build Hystrix fallback observable for req:{}", httpServerReq.host() + httpServerReq.path());
-                        forceEnd(httpServerReq);
+                        HttpServerRequestHandler.forceEnd(httpServerReq);
                     }
                 }
             }
@@ -106,19 +106,6 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
      */
     public static void removeCommandKey(String commandKey) {
         executionSemaphorePerCircuit.remove(commandKey);
-    }
-
-
-    public static void forceEnd( HttpServerRequest req) {
-        req.response().setChunked(true);
-        if ( req.response().getStatusCode() == 200 ) {
-            //还没有设错误码，统一设为500
-            req.response().setStatusCode(500);
-            req.response().setStatusMessage("ApiGateway: Unknown Exception");
-        }
-        if ( !req.response().ended()) {
-            req.response().end();
-        }
     }
 
 }

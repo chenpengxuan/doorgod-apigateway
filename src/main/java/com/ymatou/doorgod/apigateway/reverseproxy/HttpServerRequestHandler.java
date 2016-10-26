@@ -17,6 +17,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.HeadersAdaptor;
 import org.slf4j.Logger;
@@ -47,6 +48,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
     @Override
     public void handle(HttpServerRequest httpServerReq) {
+
+        if ( httpServerReq.uri().length() >= HttpServerOptions.DEFAULT_MAX_INITIAL_LINE_LENGTH) {
+            LOGGER.error("Detected large uri length {},  uri:{}", httpServerReq.uri().length(), Utils.buildFullUri(httpServerReq));
+        }
 
         //将当前时间放到请求头，以便统计耗时
         Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_ACCEEP_TIME, "" + System.currentTimeMillis());
@@ -130,26 +135,6 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
             forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq.headers()));
 
-            /**
-             * 对于明确设置了超时时间的uri,设定超时时间
-             */
-            UriConfigCache configCache = VertxVerticleDeployer.uriConfigCache;
-            UriConfig config = configCache.locate(httpServerReq.path().toLowerCase());
-            if (config != null && config.getTimeout() > 0) {
-                forwardClientReq.setTimeout(config.getTimeout());
-            }
-
-            httpServerReq.exceptionHandler(ex ->{
-                //接收请求过程中异常，此处只记warn日志。客户端可以随意关闭连接等，服务器做不了更多处理，也无需上报异常。
-                LOGGER.warn("Exception in read http req:{}, {}", Utils.buildFullPath(httpServerReq),
-                        ex.getClass().getName() + ":" + ex.getMessage());
-            });
-
-            httpServerReq.handler(data -> {
-                forwardClientReq.write(data);
-            });
-
-
             forwardClientReq.exceptionHandler(throwable -> {
                 LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 httpServerReq.response().setChunked(true);
@@ -166,6 +151,24 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                 onError(httpServerReq, new Exception(throwable));
 
+            });
+
+            /**
+             * 对于明确设置了超时时间的uri,设定超时时间
+             */
+            UriConfigCache configCache = VertxVerticleDeployer.uriConfigCache;
+            UriConfig config = configCache.locate(httpServerReq.path().toLowerCase());
+            if (config != null && config.getTimeout() > 0) {
+                forwardClientReq.setTimeout(config.getTimeout());
+            }
+
+            httpServerReq.exceptionHandler(ex ->{
+                LOGGER.error("Exception in read http req:{}", Utils.buildFullPath(httpServerReq), ex);
+                forwardClientReq.reset();
+            });
+
+            httpServerReq.handler(data -> {
+                forwardClientReq.write(data);
             });
 
             httpServerReq.endHandler((v) -> forwardClientReq.end());
@@ -301,6 +304,18 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         return result;
     };
 
+
+    public static void forceEnd( HttpServerRequest req) {
+        req.response().setChunked(true);
+        if ( req.response().getStatusCode() == 200 ) {
+            //还没有设错误码，统一设为500
+            req.response().setStatusCode(500);
+            req.response().setStatusMessage("ApiGateway: Unknown Exception");
+        }
+        if ( !req.response().ended()) {
+            req.response().end();
+        }
+    }
 
 }
 

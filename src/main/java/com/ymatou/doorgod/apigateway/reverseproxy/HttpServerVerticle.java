@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+
 /**
  * Created by tuwenjie on 2016/9/5.
  */
@@ -31,6 +33,10 @@ public class HttpServerVerticle extends AbstractVerticle {
         AppConfig appConfig = VertxVerticleDeployer.appConfig;
 
         HttpServerOptions options = new HttpServerOptions();
+        if ( appConfig.getMaxUriLength() > 0) {
+            //当前线上有uri长度大于默认的最大值:4096
+            options.setMaxInitialLineLength(appConfig.getMaxUriLength());
+        }
         if ( appConfig.isDebugMode()) {
             options.setLogActivity(true);
         }
@@ -59,6 +65,18 @@ public class HttpServerVerticle extends AbstractVerticle {
             }
         });
 
+        server.connectionHandler(conn->{
+            conn.exceptionHandler(ex -> {
+                if ( ex instanceof IOException
+                        && ex.getMessage() != null && ex.getMessage().contains("reset by peer")) {
+                    //客户端可能先关闭连接了
+                    LOGGER.warn("Connection maybe reset by peer", ex);
+                } else {
+                    LOGGER.error("Connection exception", ex);
+                }
+            });
+        });
+
         server.listen(appConfig.getVertxServerPort(), event -> {
             if ( event.failed()) {
                 LOGGER.error("Failed to bind port:{}", appConfig.getVertxServerPort(), event.cause());
@@ -67,6 +85,7 @@ public class HttpServerVerticle extends AbstractVerticle {
                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_BIND, VertxVerticleDeployer.SUCCESS_MSG);
             }
         });
+
     }
 
     @Override
