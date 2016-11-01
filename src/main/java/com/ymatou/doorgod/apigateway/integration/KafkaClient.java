@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class KafkaClient {
 
-
     public static final Logger LOGGER = LoggerFactory.getLogger(KafkaClient.class);
 
     private Producer<String, String> producer;
@@ -65,7 +64,7 @@ public class KafkaClient {
         //无需关心消息是否真正送达
         props.put("acks", "0");
         props.put("client.id", localIp);
-        props.put("max.block.ms", 100);
+        props.put("max.block.ms", appConfig.getKafkaSendTimeout());
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 

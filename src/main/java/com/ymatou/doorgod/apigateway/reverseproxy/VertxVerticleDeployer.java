@@ -9,6 +9,7 @@ import com.ymatou.doorgod.apigateway.integration.MySqlClient;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -150,6 +151,8 @@ public class VertxVerticleDeployer {
         LOGGER.info("Succeed in startup ApiGateway. CPU cores:{}, Event loop thread count:{}",
                 Runtime.getRuntime().availableProcessors(),
                 VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE);
+        LOGGER.info("Version:");
+        LOGGER.info(Utils.readVersion());
     }
 
     @PreDestroy

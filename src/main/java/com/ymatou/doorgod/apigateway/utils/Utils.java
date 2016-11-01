@@ -1,5 +1,6 @@
 package com.ymatou.doorgod.apigateway.utils;
 
+import com.ymatou.doorgod.apigateway.reverseproxy.SystemMetricsController;
 import io.vertx.core.http.HttpServerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,9 @@ import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -141,5 +145,15 @@ public class Utils {
 
     public static String buildFullPath( HttpServerRequest req ) {
         return req.host() + req.path();
+    }
+
+    public static String readVersion( ) {
+        try {
+            return new String(Files.readAllBytes(
+                    Paths.get(Utils.class.getResource("/version.txt").toURI())), Charset.forName("UTF-8"));
+        } catch (Exception e) {
+            LOGGER.error("Failed to read version", e);
+            return "Failed to read version:" + e.getMessage();
+        }
     }
 }

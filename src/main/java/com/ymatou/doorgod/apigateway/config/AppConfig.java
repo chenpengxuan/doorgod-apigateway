@@ -55,6 +55,12 @@ public class AppConfig {
     @Value("${maxUriLength}")
     private int maxUriLength;
 
+    @Value("${kafkaSendTimeout}")
+    private int kafkaSendTimeout;
+
+    @Value("${performanceServerUrl}")
+    private String performanceServerUrl;
+
     public int getVertxServerPort() {
         return vertxServerPort;
     }
@@ -173,6 +179,22 @@ public class AppConfig {
 
     public void setAcceptBacklog(int acceptBacklog) {
         this.acceptBacklog = acceptBacklog;
+    }
+
+    public int getKafkaSendTimeout() {
+        return kafkaSendTimeout;
+    }
+
+    public void setKafkaSendTimeout(int kafkaSendTimeout) {
+        this.kafkaSendTimeout = kafkaSendTimeout;
+    }
+
+    public String getPerformanceServerUrl() {
+        return performanceServerUrl;
+    }
+
+    public void setPerformanceServerUrl(String performanceServerUrl) {
+        this.performanceServerUrl = performanceServerUrl;
     }
 }
 

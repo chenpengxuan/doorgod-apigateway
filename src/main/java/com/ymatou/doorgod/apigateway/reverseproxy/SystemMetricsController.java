@@ -1,5 +1,6 @@
 package com.ymatou.doorgod.apigateway.reverseproxy;
 
+import com.ymatou.doorgod.apigateway.utils.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,9 +29,8 @@ public class SystemMetricsController {
 
     @RequestMapping(value = "/version", produces = {"text/plain"})
     @ResponseBody
-    public String version() throws IOException, URISyntaxException {
-        return  new String(Files.readAllBytes(
-                    Paths.get(SystemMetricsController.class.getResource("/version.txt").toURI())), Charset.forName("UTF-8"));
+    public String version() {
+        return Utils.readVersion();
     }
 
 }

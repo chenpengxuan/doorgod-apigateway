@@ -1,7 +1,10 @@
 package com.ymatou.doorgod.apigateway.integration;
 
+import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.performancemonitorclient.PerformanceMonitorAdvice;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 
@@ -11,9 +14,16 @@ import javax.annotation.PostConstruct;
 @Component
 public class PerformanceClient {
 
+    @Autowired
+    private AppConfig appConfig;
+
     @PostConstruct
     public void init( ) {
+        String defaultUrl = "http://monitor.iapi.ymatou.com/api/perfmon";
+        if (StringUtils.hasText(appConfig.getPerformanceServerUrl())) {
+            defaultUrl = appConfig.getPerformanceServerUrl().trim();
+        }
         PerformanceMonitorAdvice.init("apigateway.doorgod.iapi.ymatou.com",
-                "http://monitor.iapi.ymatou.com/api/perfmon");
+                defaultUrl);
     }
 }
