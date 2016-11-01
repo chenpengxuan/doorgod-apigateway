@@ -22,8 +22,11 @@ public class AppConfig {
     @Value("${targetServerWarmupUri}")
     private String targetServerWarmupUri;
 
-    @Value("${initHttpConnections}")
-    private int initHttpConnections;
+    @Value("${connectionIdleTimeout}")
+    private int connectionIdleTimeout;
+
+    @Value("${acceptBacklog}")
+    private int acceptBacklog;
 
     @Value("${mySqlHost}")
     private String mySqlHost;
@@ -124,14 +127,6 @@ public class AppConfig {
         this.mySqlDbName = mySqlDbName;
     }
 
-    public int getInitHttpConnections() {
-        return initHttpConnections;
-    }
-
-    public void setInitHttpConnections(int initHttpConnections) {
-        this.initHttpConnections = initHttpConnections;
-    }
-
     public String getMongodbName() {
         return mongodbName;
     }
@@ -162,6 +157,22 @@ public class AppConfig {
 
     public void setMaxUriLength(int maxUriLength) {
         this.maxUriLength = maxUriLength;
+    }
+
+    public int getConnectionIdleTimeout() {
+        return connectionIdleTimeout;
+    }
+
+    public void setConnectionIdleTimeout(int connectionIdleTimeout) {
+        this.connectionIdleTimeout = connectionIdleTimeout;
+    }
+
+    public int getAcceptBacklog() {
+        return acceptBacklog;
+    }
+
+    public void setAcceptBacklog(int acceptBacklog) {
+        this.acceptBacklog = acceptBacklog;
     }
 }
 

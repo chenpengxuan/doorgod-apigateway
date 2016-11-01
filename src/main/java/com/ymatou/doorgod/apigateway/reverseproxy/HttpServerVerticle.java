@@ -33,6 +33,7 @@ public class HttpServerVerticle extends AbstractVerticle {
         AppConfig appConfig = VertxVerticleDeployer.appConfig;
 
         HttpServerOptions options = new HttpServerOptions();
+        options.setAcceptBacklog(appConfig.getAcceptBacklog());
         if ( appConfig.getMaxUriLength() > 0) {
             //当前线上有uri长度大于默认的最大值:4096
             options.setMaxInitialLineLength(appConfig.getMaxUriLength());
@@ -67,12 +68,11 @@ public class HttpServerVerticle extends AbstractVerticle {
 
         server.connectionHandler(conn->{
             conn.exceptionHandler(ex -> {
-                if ( ex instanceof IOException
-                        && ex.getMessage() != null && ex.getMessage().contains("reset by peer")) {
+                if ( ex instanceof IOException) {
                     //客户端可能先关闭连接了
-                    LOGGER.warn("Connection maybe reset by peer", ex);
+                    LOGGER.warn("IoException in connection with client", ex);
                 } else {
-                    LOGGER.error("Connection exception", ex);
+                    LOGGER.error("Exception in connection with client", ex);
                 }
             });
         });
@@ -97,6 +97,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setMaxPoolSize(appConfig.getMaxHttpConnectionPoolSize());
+        httpClientOptions.setIdleTimeout(appConfig.getConnectionIdleTimeout());
 
         httpClientOptions.setLogActivity(appConfig.isDebugMode());
 
@@ -112,7 +113,7 @@ public class HttpServerVerticle extends AbstractVerticle {
             TargetServer ts = VertxVerticleDeployer.targetServer;
 
             //预加载到目标服务器，譬如Nginx的连接
-            for (int i = 0; i < appConfig.getInitHttpConnections(); i++) {
+            for (int i = 0; i < appConfig.getMaxHttpConnectionPoolSize(); i++) {
                 HttpClientRequest req = httpClient.get(ts.getPort(), ts.getHost(),
                         appConfig.getTargetServerWarmupUri().trim(),
                         targetResp -> {

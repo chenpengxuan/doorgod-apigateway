@@ -43,7 +43,7 @@ public class KafkaClient {
     //单线程发送Kafka消息
     private ExecutorService producerExecutor = new ThreadPoolExecutor(1, 1,
             0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>(10000));
+            new LinkedBlockingQueue<Runnable>(100000));
 
     @Autowired
     private AppConfig appConfig;
@@ -67,6 +67,7 @@ public class KafkaClient {
         //无需关心消息是否真正送达
         props.put("acks", "0");
         props.put("client.id", localIp);
+        props.put("max.block.ms", 100);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 

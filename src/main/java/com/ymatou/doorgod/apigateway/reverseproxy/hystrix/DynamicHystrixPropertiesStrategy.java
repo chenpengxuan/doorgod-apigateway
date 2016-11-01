@@ -45,20 +45,13 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
 
     @Override
     public HystrixCommandProperties getCommandProperties(HystrixCommandKey commandKey, HystrixCommandProperties.Setter builder) {
-        if (commandKey.name().equalsIgnoreCase(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR)) {
-            return super.getCommandProperties(commandKey, builder);
-        }
         return commandKeyToProperties.getUnchecked(commandKey);
     }
 
     @Override
     public String getCommandPropertiesCacheKey(HystrixCommandKey commandKey, HystrixCommandProperties.Setter builder) {
-        if (commandKey.name().equalsIgnoreCase(Constants.HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR)) {
-            return super.getCommandPropertiesCacheKey(commandKey, builder);
-        } else {
-            //用自己的缓存方案
-            return null;
-        }
+        //用自己的缓存方案
+        return null;
     }
 
     public static HystrixCommandProperties.Setter build(HystrixConfig config ) {

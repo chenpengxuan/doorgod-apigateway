@@ -8,8 +8,8 @@ import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.model.TargetServer;
 import com.ymatou.doorgod.apigateway.model.UriConfig;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.DimensionKeyValueFetcher;
+import com.ymatou.doorgod.apigateway.reverseproxy.filter.FilterContext;
 import com.ymatou.doorgod.apigateway.reverseproxy.filter.FiltersExecutor;
-import com.ymatou.doorgod.apigateway.reverseproxy.hystrix.HystrixFiltersExecutorCommand;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
@@ -58,27 +58,24 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
         FiltersExecutor filtersExecutor = VertxVerticleDeployer.filtersExecutor;
 
-        //通过Hystrix监控FiltersExecutor性能及TPS等
-        HystrixFiltersExecutorCommand filtersExecutorCommand = new HystrixFiltersExecutorCommand(filtersExecutor, httpServerReq);
         long startTime = System.currentTimeMillis();
-        filtersExecutorCommand.toObservable().subscribe(filterContext -> {
+        FilterContext filterContext = filtersExecutor.pass(httpServerReq);
 
-            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_SAMPLE,
-                    JSON.toJSONString(filterContext.sample));
-            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_MATCH_RULES,
-                    filterContext.matchedRuleNames);
+        //将Filters耗时放置到报文头
+        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_FILTER_CONSUME_TIME,
+                "" + (System.currentTimeMillis() - startTime));
+        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_SAMPLE,
+                JSON.toJSONString(filterContext.sample));
+        Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_MATCH_RULES,
+                filterContext.matchedRuleNames);
 
-            //将Filters耗时放置到报文头
-            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_FILTER_CONSUME_TIME,
-                    "" + (System.currentTimeMillis() - startTime));
-            if (filterContext.rejected) {
-                Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER,
-                        "true");
-                Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE,
-                        filterContext.hitRuleName);
-            }
 
-        });
+        if (filterContext.rejected) {
+            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REQ_REJECTED_BY_FILTER,
+                    "true");
+            Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_HIT_RULE,
+                    filterContext.hitRuleName);
+        }
 
         process(httpServerReq);
 
@@ -123,7 +120,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                         targetResp.exceptionHandler(throwable -> {
                             LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
-                            httpServerReq.response().setStatusCode(500);
+                            httpServerReq.response().setStatusCode(502);
                             httpServerReq.response().setStatusMessage("Failed to read target service resp");
                             onError(httpServerReq, throwable);
                         });
@@ -136,10 +133,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq.headers()));
 
             forwardClientReq.exceptionHandler(throwable -> {
-                LOGGER.error("Failed to transfer reverseproxy req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
-                httpServerReq.response().setChunked(true);
+                LOGGER.error("Failed to transfer req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 if (throwable instanceof java.net.ConnectException) {
-                    httpServerReq.response().setStatusCode(408);
+                    httpServerReq.response().setStatusCode(503);
                     httpServerReq.response().setStatusMessage("ApiGateway: Failed to connect target server");
                 } else if (throwable instanceof java.util.concurrent.TimeoutException) {
                     httpServerReq.response().setStatusCode(504);
@@ -177,6 +173,10 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
 
     public void fallback(HttpServerRequest httpServerReq ) {
+
+        if ( httpServerReq.response().ended()) {
+            return;
+        }
 
         httpServerReq.response().setChunked(true);
 
@@ -265,13 +265,26 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
         try {
             StatisticItem item = extract(req);
 
-            Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
-                            "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
-                    item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
-                    item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
-                    item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
-
             AppConfig appConfig = VertxVerticleDeployer.appConfig;
+            if ( appConfig.isDebugMode()) {
+                //Debug模式，输出每个请求处理情况
+                Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
+                                "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
+                        item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
+                        item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
+                        item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
+            } else {
+                if ( item.getStatusCode() != 200 || item.isRejectedByFilter() || item.isRejectedByHystrix()) {
+                    //只输出非正常处理的请求
+                    Constants.ACCESS_LOGGER.warn("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
+                                    "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
+                            item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
+                            item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
+                            item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
+                }
+            }
+
+
             if (appConfig.isDebugMode()) {
                 Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
             }
@@ -279,7 +292,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
         } catch (Exception t ) {
             //一种保护机制，构造/发送StatisticItem不影响响应的正常返回
-            LOGGER.error("Failed to send StatisticItem for req:{}", req.host() + req.path());
+            LOGGER.error("Failed to send StatisticItem for req:{}", req.host() + req.path(), t);
         }
     }
 
@@ -306,15 +319,16 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
 
     public static void forceEnd( HttpServerRequest req) {
+        if ( req.response().ended()) {
+            return;
+        }
         req.response().setChunked(true);
         if ( req.response().getStatusCode() == 200 ) {
             //还没有设错误码，统一设为500
             req.response().setStatusCode(500);
             req.response().setStatusMessage("ApiGateway: Unknown Exception");
         }
-        if ( !req.response().ended()) {
-            req.response().end();
-        }
+        req.response().end();
     }
 
 }

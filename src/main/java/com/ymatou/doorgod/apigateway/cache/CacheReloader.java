@@ -47,7 +47,7 @@ public class CacheReloader implements KafkaRecordListener {
 
     private Map<Offset, AtomicInteger> failures = new ConcurrentHashMap<Offset, AtomicInteger>();
 
-    public static int MAX_FAILURES = 100;
+    public static final int MAX_FAILURES = 100;
 
 
     @Override

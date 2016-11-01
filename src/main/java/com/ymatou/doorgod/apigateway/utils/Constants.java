@@ -32,8 +32,6 @@ public interface Constants {
 
     public static final String COLLECTION_BLACLIST_RULE_OFFENDER = "BlacklistRuleOffender";
 
-    public static final String HYSTRIX_COMMAND_KEY_FILTERS_EXECUTOR = "filtersExecutor";
-
     public static final String HEADER_DOOR_GOD_PREFIX = "$doorgod$-";
 
     //接收请求时间

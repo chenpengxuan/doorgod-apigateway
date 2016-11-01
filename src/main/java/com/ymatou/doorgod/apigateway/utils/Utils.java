@@ -28,7 +28,11 @@ public class Utils {
      * @return
      */
     public static String getOriginalIp(HttpServerRequest req ) {
-        String result = (req.headers().get("X-Forwarded-For"));
+        String result = req.headers().get("Cdn-Src-Ip");
+        if ( result != null && result.trim().length() > 0 ) {
+            return result.trim();
+        }
+        result = req.headers().get("X-Forwarded-For");
         if ( result == null || result.trim().length() == 0) {
             return req.remoteAddress().host();
         } else {

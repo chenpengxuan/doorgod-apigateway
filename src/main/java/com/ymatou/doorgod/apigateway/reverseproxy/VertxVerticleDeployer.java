@@ -119,7 +119,7 @@ public class VertxVerticleDeployer {
         if ( StringUtils.hasText(appConfig.getTargetServerWarmupUri())) {
             boolean[] warmUpSuccess = new boolean[]{false};
 
-            CountDownLatch createConnsLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getInitHttpConnections());
+            CountDownLatch createConnsLatch = new CountDownLatch(VERTICLE_INSTANCES * appConfig.getMaxHttpConnectionPoolSize());
 
             vertx.eventBus().consumer(ADDRESS_END_ONE_PRE_CONNECTION, event -> {
                 if (event.body().toString().equals(SUCCESS_MSG)) {
