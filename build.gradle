@@ -61,6 +61,9 @@ dependencies {
 	compile ('com.ymatou.errorreporter:errorreporter-logback:1.0.5') {
 		exclude group: 'io.netty'
 	}
+	compile ('com.ymatou:performancemonitorclient:1.0.9') {
+		exclude group: 'io.netty'
+	}
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.jmockit:jmockit:1.28')
 }

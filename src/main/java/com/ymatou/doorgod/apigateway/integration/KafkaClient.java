@@ -5,6 +5,7 @@ import com.ymatou.doorgod.apigateway.config.AppConfig;
 import com.ymatou.doorgod.apigateway.model.StatisticItem;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
+import com.ymatou.performancemonitorclient.PerformanceStatisticContainer;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -18,10 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -151,6 +149,9 @@ public class KafkaClient {
 
     public void sendStatisticItem(StatisticItem item) {
         ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_STATISTIC_SAMPLE_EVENT,
+                null,
+                System.currentTimeMillis(),
+                null,
                 JSON.toJSONString(item));
         send( record );
     }
@@ -160,6 +161,8 @@ public class KafkaClient {
         try {
             producerExecutor.submit(() -> {
                 producer.send(record, (metadata, exception) -> {
+                    //监控Kafka发送的性能
+                    PerformanceStatisticContainer.add(System.currentTimeMillis() - record.timestamp(), "kafkaSend");
                     if (exception != null) {
                         LOGGER.error("Failed to send Kafka message:{}", record, exception);
                     }
