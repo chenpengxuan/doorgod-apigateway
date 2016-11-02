@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 /**
  * Created by tuwenjie on 2016/9/13.
@@ -77,5 +78,11 @@ public class UtilsTest {
     }
 
     public static class Entity  {
+    }
+
+    @Test
+    public void testRegularExp( ) {
+        System.out.println(Pattern.matches("/ab/|/yid/", "/ab/"));
+        System.out.println(Pattern.matches("/ab/|/yid/", "/yid/"));
     }
 }

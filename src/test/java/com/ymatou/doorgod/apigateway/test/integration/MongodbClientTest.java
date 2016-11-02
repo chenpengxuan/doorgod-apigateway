@@ -25,10 +25,13 @@ public class MongodbClientTest extends BaseTest {
         Sample sample = new Sample( );
         sample.addDimensionValue("ip", Utils.localIp());
 
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("dimensionValues", new JsonObject().put("ip",  Utils.localIp()));
+
         client.mongo().insert(Constants.COLLECTION_LIMIT_TIMES_RULE_OFFENDER,
                 new JsonObject().put("ruleName", "test")
-                    .put("sample", JSON.toJSONString(sample))
-                    .put("releaseDate", Long.valueOf(Utils.getCurrentTimeStr()) + 100),
+                    .put("sample", jsonObject)
+                    .put("releaseDate", Long.valueOf(Utils.getCurrentTimeStr()) + 10000),
                 res -> {}
         );
 

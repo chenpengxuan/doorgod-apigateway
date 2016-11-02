@@ -82,7 +82,14 @@ public class MongodbClient {
                     if ( event.succeeded()) {
                         for ( JsonObject jo : event.result()) {
                             try {
-                                Sample sample = JSON.parseObject(jo.getString("sample"), Sample.class);
+                                JsonObject sampleJo = jo.getJsonObject("sample");
+                                JsonObject dimensionValuesJo = sampleJo.getJsonObject("dimensionValues");
+
+                                Sample sample = new Sample();
+                                dimensionValuesJo.forEach(entry -> {
+                                    sample.addDimensionValue(entry.getKey(), entry.getValue().toString());
+                                });
+
                                 Date releaseDate = Utils.parseDate("" + jo.getLong("releaseDate"));
 
                                 if (result.get(sample) == null) {
