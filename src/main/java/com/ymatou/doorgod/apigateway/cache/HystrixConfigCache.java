@@ -55,7 +55,7 @@ public class HystrixConfigCache implements Cache {
                                                 return Optional.of(config);
                                             }
                                         } catch ( Exception e ) {
-                                            LOGGER.error("Failed to parse pattern:{} in hystrix config", config.getUri(), e);
+                                            LOGGER.error("Failed to parse pattern:{} in hystrix config. {}", config.getUri(), e.getMessage(), e);
                                         }
                                     }
                                     return Optional.empty();

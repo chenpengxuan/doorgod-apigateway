@@ -119,7 +119,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         });
 
                         targetResp.exceptionHandler(throwable -> {
-                            LOGGER.error("Failed to read target service resp {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
+                            LOGGER.error("Failed to read target service resp {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                             httpServerReq.response().setStatusCode(502);
                             httpServerReq.response().setStatusMessage("Failed to read target service resp");
                             onError(httpServerReq, throwable);
@@ -133,14 +133,16 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq.headers()));
 
             forwardClientReq.exceptionHandler(throwable -> {
-                LOGGER.error("Failed to transfer req {}:{}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 if (throwable instanceof java.net.ConnectException) {
+                    LOGGER.error("Failed to transfer req. Connect Exception. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(503);
                     httpServerReq.response().setStatusMessage("ApiGateway: Failed to connect target server");
                 } else if (throwable instanceof java.util.concurrent.TimeoutException) {
+                    LOGGER.error("Failed to transfer req. Time out. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(504);
                     httpServerReq.response().setStatusMessage("ApiGateway: Target server timeout");
                 } else {
+                    LOGGER.error("Failed to transfer req. Unknown Exception. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(503);
                     httpServerReq.response().setStatusMessage("ApiGateway: Exception in requesting target server");
                 }
@@ -159,7 +161,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             }
 
             httpServerReq.exceptionHandler(ex ->{
-                LOGGER.error("Exception in read http req:{}", Utils.buildFullPath(httpServerReq), ex);
+                LOGGER.error("Exception in read http req:{}. {}", Utils.buildFullPath(httpServerReq), ex.getMessage(), ex);
                 forwardClientReq.end();
             });
 
@@ -186,6 +188,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 && config.getFallbackStatusCode() > 0) {
             httpServerReq.response().setStatusCode(config.getFallbackStatusCode());
             if (config.getFallbackBody() != null) {
+                if ( config.getFallbackBody().trim().startsWith("{")) {
+                    httpServerReq.response().headers().set("Content-Type","application/json; charset=utf-8");
+                }
                 httpServerReq.response().write(config.getFallbackBody());
             }
         } else {
@@ -292,7 +297,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
         } catch (Exception t ) {
             //一种保护机制，构造/发送StatisticItem不影响响应的正常返回
-            LOGGER.error("Failed to send StatisticItem for req:{}", req.host() + req.path(), t);
+            LOGGER.error("Failed to send StatisticItem for req:{}. {}", req.host() + req.path(), t.getMessage(), t);
         }
     }
 

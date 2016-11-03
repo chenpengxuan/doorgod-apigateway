@@ -112,7 +112,7 @@ public class KafkaClient {
                                                 record.offset() + 1)),
                                         (offsets, exception) -> {
                                             if (exception != null) {
-                                                LOGGER.error("Failed to commit kafaka offsets:{}", offsets, exception);
+                                                LOGGER.error("Failed to commit kafaka offsets:{}. {}", offsets, exception.getMessage(), exception);
                                             }
                                         });
                             }
@@ -120,7 +120,7 @@ public class KafkaClient {
 
                         } catch (Exception e) {
                             //一个Partition消费异常，继续去消费别的Partition
-                            LOGGER.error("Failed to consume kafka message", e);
+                            LOGGER.error("Failed to consume kafka message. {}", e.getMessage(), e);
                         }
                     }
                 }
@@ -163,12 +163,12 @@ public class KafkaClient {
                     //监控Kafka发送的性能
                     PerformanceStatisticContainer.add(System.currentTimeMillis() - record.timestamp(), "kafkaSend");
                     if (exception != null) {
-                        LOGGER.error("Failed to send Kafka message:{}", record, exception);
+                        LOGGER.error("Failed to send Kafka message:{}. {}", record, exception.getMessage(), exception);
                     }
                 });
             });
         } catch (Exception e ) {
-            LOGGER.error("Kafka send message thread pool used up", e );
+            LOGGER.error("Kafka send message thread pool used up. {}", e.getMessage(),  e );
         }
 
     }

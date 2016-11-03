@@ -55,7 +55,7 @@ public class UriPatternCache implements Cache {
                                                 return Optional.of(pattern);
                                             }
                                         } catch (Exception e) {
-                                            LOGGER.error("Failed to parse pattern:{} in uri pattern", pattern, e);
+                                            LOGGER.error("Failed to parse pattern:{} in uri pattern. {}", pattern, e.getMessage(), e);
                                         }
                                     }
                                     return Optional.empty();

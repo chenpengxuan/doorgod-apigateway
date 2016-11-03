@@ -48,7 +48,8 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         handler.handle(httpServerReq);
                     } catch (Exception e) {
                         //should never go here
-                        LOGGER.error("Failed to build Hystrix observable for req:{}", httpServerReq.host() + httpServerReq.path());
+                        LOGGER.error("Failed to build Hystrix observable for req:{}. {}", httpServerReq.host() + httpServerReq.path(),
+                                e.getMessage(), e);
                         HttpServerRequestHandler.forceEnd(httpServerReq);
                     }
                 }
@@ -90,7 +91,8 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         handler.fallback(httpServerReq);
                     } catch ( Exception e) {
                         //should never go here
-                        LOGGER.error("Failed to build Hystrix fallback observable for req:{}", httpServerReq.host() + httpServerReq.path());
+                        LOGGER.error("Failed to build Hystrix fallback observable for req:{}. {}", httpServerReq.host() + httpServerReq.path(),
+                                e.getMessage(), e);
                         HttpServerRequestHandler.forceEnd(httpServerReq);
                     }
                 }

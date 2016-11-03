@@ -50,7 +50,9 @@ public class RuleOffenderCache implements Cache {
 
     public void reload( String ruleName ) throws Exception {
         AbstractRule rule = ruleCache.locate(ruleName);
-        Map<Sample, Date> result = mongodbClient.loadRuleOffenders(ruleName, rule.type());
-        offenders.put(ruleName, result);
+        if ( rule != null ) {
+            Map<Sample, Date> result = mongodbClient.loadRuleOffenders(ruleName, rule.type());
+            offenders.put(ruleName, result);
+        }
     }
 }

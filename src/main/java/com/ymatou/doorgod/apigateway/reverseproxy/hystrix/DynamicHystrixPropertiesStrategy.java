@@ -120,7 +120,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
                 BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerForceOpen",
                         HystrixProperty.Factory.asProperty(config.getForceCircuitBreakerOpen()));
             } catch (Exception e) {
-                logger.error("reload circuitBreakerForceOpen error",e);
+                logger.error("reload circuitBreakerForceOpen error. {}", e.getMessage(), e);
             }
         }
     }
@@ -136,7 +136,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
                 BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerForceClosed",
                         HystrixProperty.Factory.asProperty(config.getForceCircuitBreakerClose()));
             } catch (Exception e) {
-                logger.error("reload circuitBreakerForceOpen error",e);
+                logger.error("reload circuitBreakerForceOpen error. {}", e.getMessage(), e);
             }
         }
     }
@@ -153,7 +153,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
                 BeanUtils.forceSetProperty(hystrixCommandProperties,"circuitBreakerErrorThresholdPercentage",
                         HystrixProperty.Factory.asProperty(config.getErrorThresholdPercentageOfCircuitBreaker()));
             } catch (Exception e) {
-                logger.error("reload circuitBreakerForceOpen error",e);
+                logger.error("reload circuitBreakerForceOpen error. {}",e.getMessage(), e);
             }
         }
     }
@@ -173,7 +173,7 @@ public class DynamicHystrixPropertiesStrategy extends HystrixPropertiesStrategy 
                 BeanUtils.forceSetProperty(hystrixCommandProperties,"executionIsolationSemaphoreMaxConcurrentRequests",
                         HystrixProperty.Factory.asProperty(config.getMaxConcurrentReqs()));
             } catch (Exception e) {
-                logger.error("reload circuitBreakerForceOpen error",e);
+                logger.error("reload circuitBreakerForceOpen error. {}", e.getMessage(), e);
             }
             HystrixForwardReqCommand.removeCommandKey(hystrixCommandKey.name());
         }

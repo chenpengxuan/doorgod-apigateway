@@ -102,7 +102,7 @@ public class MongodbClient {
                                     }
                                 }
                             } catch (Exception e ) {
-                                LOGGER.error("Failed to parse limit times rule offender:{}. ruleName:{}", jo, ruleName);
+                                LOGGER.error("Failed to parse limit times rule offender:{}. ruleName:{}. {}", jo, ruleName, e.getMessage(), e);
                             }
                         }
                     } else {

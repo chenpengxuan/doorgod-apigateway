@@ -71,7 +71,7 @@ public class FiltersExecutor {
             }
 
         } catch ( Exception e ) {
-            LOGGER.error("Exception in doing filter for reverseproxy request:{}", Utils.buildFullUri(httpReq), e );
+            LOGGER.error("Exception in doing filter for reverseproxy request:{}. {}", Utils.buildFullUri(httpReq), e.getMessage(), e );
             context.rejected = false;
             context.hitRuleName = null;
         }

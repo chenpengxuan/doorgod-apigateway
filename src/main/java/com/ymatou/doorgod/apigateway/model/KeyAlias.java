@@ -69,7 +69,7 @@ public class KeyAlias extends PrintFriendliness implements Comparable<KeyAlias> 
         try {
             return uri.startsWith(this.uri) || Pattern.matches(this.uri, uri);
         } catch (Exception e ) {
-            LOGGER.error("Wrong uri pattern {} in KeyAlias config", this.uri, e);
+            LOGGER.error("Wrong uri pattern {} in KeyAlias config. {}", this.uri, e.getMessage(),  e);
             return false;
         }
     }

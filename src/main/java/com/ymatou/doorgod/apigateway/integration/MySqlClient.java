@@ -85,7 +85,7 @@ public class MySqlClient {
                                             LOGGER.error("Unknown rule type {} in mysql rule tables", row.getString("rule_type"));
                                         }
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding rule from mysql. row:{}", row, e);
+                                        LOGGER.error("Exception in loding rule from mysql. row:{}. {}", row, e.getMessage(), e);
                                     }
 
                                 });
@@ -137,7 +137,7 @@ public class MySqlClient {
                                         result.add(preFilter);
 
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding customize filters from mysql", e);
+                                        LOGGER.error("Exception in loding customize filters from mysql. {}", e.getMessage(), e);
                                     }
 
                                 });
@@ -194,7 +194,7 @@ public class MySqlClient {
                                         result.add(config);
 
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding hystrix config from mysql", e);
+                                        LOGGER.error("Exception in loding hystrix config from mysql. {}", e.getMessage(), e);
                                     }
 
                                 });
@@ -243,7 +243,7 @@ public class MySqlClient {
                                         result.add(config);
 
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding uri config from mysql", e);
+                                        LOGGER.error("Exception in loding uri config from mysql. {}", e.getMessage(), e);
                                     }
 
                                 });
@@ -332,7 +332,7 @@ public class MySqlClient {
                                         result.add(alias);
 
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loding key aliases from mysql", e);
+                                        LOGGER.error("Exception in loding key aliases from mysql. {}", e.getMessage(), e);
                                     }
 
                                 });
@@ -382,7 +382,7 @@ public class MySqlClient {
                                         }
 
                                     } catch (Exception e) {
-                                        LOGGER.error("Exception in loading key aliases from mysql", e);
+                                        LOGGER.error("Exception in loading key aliases from mysql. {}", e.getMessage(), e);
                                     }
 
                                 });

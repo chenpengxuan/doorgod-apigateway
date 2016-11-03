@@ -115,7 +115,7 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
                     return true;
                 }
             } catch (Exception e ) {
-                LOGGER.error("Failed to parse pattern in applicableUrls {} of rule {}", applicable, name, e);
+                LOGGER.error("Failed to parse pattern in applicableUrls {} of rule {}. {}", applicable, name, e.getMessage(), e);
             }
         }
 

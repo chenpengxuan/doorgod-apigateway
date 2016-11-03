@@ -98,7 +98,7 @@ public class Utils {
 
                 } catch (Throwable t) {
                     localIp = "127.0.0.1";
-                    LOGGER.error("Failed to extract local ip. use 127.0.0.1 instead", t);
+                    LOGGER.error("Failed to extract local ip. use 127.0.0.1 instead. {}", t.getMessage(), t);
                 }
             }
 
@@ -152,7 +152,7 @@ public class Utils {
             return new String(Files.readAllBytes(
                     Paths.get(Utils.class.getResource("/version.txt").toURI())), Charset.forName("UTF-8"));
         } catch (Exception e) {
-            LOGGER.error("Failed to read version", e);
+            LOGGER.error("Failed to read version. {}", e.getMessage(), e);
             return "Failed to read version:" + e.getMessage();
         }
     }

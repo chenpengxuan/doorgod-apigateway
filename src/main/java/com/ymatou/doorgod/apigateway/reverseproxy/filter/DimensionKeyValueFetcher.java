@@ -5,6 +5,8 @@ import com.ymatou.doorgod.apigateway.cache.UriPatternCache;
 import com.ymatou.doorgod.apigateway.model.Sample;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,8 @@ import java.util.Set;
  */
 @Component
 public class DimensionKeyValueFetcher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DimensionKeyValueFetcher.class);
 
     @Autowired
     private KeyAliasCache keyAliasCache;
@@ -39,10 +43,13 @@ public class DimensionKeyValueFetcher {
                 key = alias;
             }
 
-
-            String value = httpReq.getParam(key);
+            String value = httpReq.headers().get(key);
             if ( value == null ) {
-                value = httpReq.headers().get(key);
+                try {
+                    value = httpReq.getParam(key);
+                } catch (Exception e) {
+                    LOGGER.error("Failed to parse uri:{}. {}", Utils.buildFullUri(httpReq), e.getMessage(), e);
+                }
             }
             if ( value == null ) {
                 return Sample.NULL_VALUE_PLACEHOLDER;

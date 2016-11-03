@@ -72,14 +72,15 @@ public class HttpServerVerticle extends AbstractVerticle {
                     //客户端可能先关闭连接了
                     LOGGER.warn("IoException in connection with client", ex);
                 } else {
-                    LOGGER.error("Exception in connection with client", ex);
+                    //目前主要是uri过长异常
+                    LOGGER.error("Exception in connection with client. {}", ex.getMessage(), ex);
                 }
             });
         });
 
         server.listen(appConfig.getVertxServerPort(), event -> {
             if ( event.failed()) {
-                LOGGER.error("Failed to bind port:{}", appConfig.getVertxServerPort(), event.cause());
+                LOGGER.error("Failed to bind port:{}. {}", appConfig.getVertxServerPort(), event.cause().getMessage(), event.cause());
                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_BIND, event.cause().getMessage());
             } else {
                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_BIND, VertxVerticleDeployer.SUCCESS_MSG);
@@ -121,12 +122,12 @@ public class HttpServerVerticle extends AbstractVerticle {
                                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
                             });
                             targetResp.exceptionHandler(throwable -> {
-                                LOGGER.error("Failed to warm up target server.", throwable);
+                                LOGGER.error("Failed to warm up target server. {}", throwable.getMessage(), throwable);
                                 vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, "fail");
                             });
                         });
                 req.exceptionHandler(throwable -> {
-                    LOGGER.error("Failed to warm up target server.", throwable);
+                    LOGGER.error("Failed to warm up target server. {}", throwable.getMessage(), throwable);
                     vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, "fail");
                 });
                 req.end();
