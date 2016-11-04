@@ -48,7 +48,9 @@ public class DimensionKeyValueFetcher {
                 try {
                     value = httpReq.getParam(key);
                 } catch (Exception e) {
+                    //线上有uri经过几层encode,导致vert.x解析失败的case
                     LOGGER.error("Failed to parse uri:{}. {}", Utils.buildFullUri(httpReq), e.getMessage(), e);
+                    value = fetchKeyManually(httpReq.uri(), key);
                 }
             }
             if ( value == null ) {
@@ -76,6 +78,28 @@ public class DimensionKeyValueFetcher {
             //对于动态变更的uri，譬如/product/${productId},通过pattern固化
             return pattern;
         }
+    }
+
+    /**
+     * 线上有uri经过几层encode,导致vert.x解析失败的case
+     * 当vert.x uri解析失败时，手动将key值扣出来
+     * @param uri
+     * @return
+     */
+    public static String fetchKeyManually( String uri, String key) {
+        String lowercaseUri = uri.toLowerCase();
+        String keyFlag = key.toLowerCase() + "=";
+        int startIndex = lowercaseUri.indexOf(keyFlag);
+        if ( startIndex > 0 &&
+                (uri.charAt(startIndex-1) == '?' || uri.charAt(startIndex-1) == '&')) {
+            int endIndex = lowercaseUri.indexOf("&", startIndex);
+            if ( endIndex > 0) {
+                return uri.substring(startIndex + keyFlag.length(), endIndex);
+            } else {
+                return uri.substring(startIndex + keyFlag.length());
+            }
+        }
+        return null;
     }
 
 }

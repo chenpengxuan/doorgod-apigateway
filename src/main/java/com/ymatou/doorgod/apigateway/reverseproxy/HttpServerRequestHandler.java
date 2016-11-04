@@ -312,12 +312,19 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
 
     public static MultiMap clearDoorgodHeads( MultiMap headers ) {
-        MultiMap result = new HeadersAdaptor(new DefaultHttpHeaders());
-        Set<String> names = headers.names();
-        for ( String name : names ) {
-            if ( !name.startsWith(Constants.HEADER_DOOR_GOD_PREFIX)) {
-                result.add(name, headers.getAll(name));
+
+        MultiMap result = null;
+        try {
+            result = new HeadersAdaptor(new DefaultHttpHeaders());
+            Set<String> names = headers.names();
+            for ( String name : names ) {
+                if ( !name.startsWith(Constants.HEADER_DOOR_GOD_PREFIX)) {
+                    result.add(name, headers.getAll(name));
+                }
             }
+        } catch (Exception e) {
+            LOGGER.error("Clear doorgod headers exception. use full headers instead.{}", e.getMessage(), e);
+            result = headers;
         }
         return result;
     };
