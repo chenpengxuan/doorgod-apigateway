@@ -49,7 +49,7 @@ public class DimensionKeyValueFetcher {
                     value = httpReq.getParam(key);
                 } catch (Exception e) {
                     //线上有uri经过几层encode,导致vert.x解析失败的case
-                    LOGGER.error("Failed to parse uri:{}. {}", Utils.buildFullUri(httpReq), e.getMessage(), e);
+                    LOGGER.error("Failed to parse uri:{}. {}", e.getMessage(), Utils.buildFullUri(httpReq), e);
                     value = fetchKeyManually(httpReq.uri(), key);
                 }
             }

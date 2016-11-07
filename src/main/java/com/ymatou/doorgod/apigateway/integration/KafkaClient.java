@@ -163,7 +163,7 @@ public class KafkaClient {
                     //监控Kafka发送的性能
                     PerformanceStatisticContainer.add(System.currentTimeMillis() - record.timestamp(), "kafkaSend");
                     if (exception != null) {
-                        LOGGER.error("Failed to send Kafka message:{}. {}", record, exception.getMessage(), exception);
+                        LOGGER.error("Failed to send Kafka message:{}. {}", exception.getMessage(), record, exception);
                     }
                 });
             });

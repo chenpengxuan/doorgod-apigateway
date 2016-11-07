@@ -119,7 +119,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         });
 
                         targetResp.exceptionHandler(throwable -> {
-                            LOGGER.error("Failed to read target service resp {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
+                            LOGGER.error("Failed to read target service resp.{} {}:{}.", throwable.getMessage(), httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                             httpServerReq.response().setStatusCode(502);
                             httpServerReq.response().setStatusMessage("Failed to read target service resp");
                             onError(httpServerReq, throwable);
@@ -130,19 +130,17 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                     });
 
-            forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq.headers()));
+            forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq));
 
             forwardClientReq.exceptionHandler(throwable -> {
+                LOGGER.error("Failed to transfer req.{}.{}:{}", throwable.getMessage(), httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 if (throwable instanceof java.net.ConnectException) {
-                    LOGGER.error("Failed to transfer req. Connect Exception. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(503);
                     httpServerReq.response().setStatusMessage("ApiGateway: Failed to connect target server");
                 } else if (throwable instanceof java.util.concurrent.TimeoutException) {
-                    LOGGER.error("Failed to transfer req. Time out. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(504);
                     httpServerReq.response().setStatusMessage("ApiGateway: Target server timeout");
                 } else {
-                    LOGGER.error("Failed to transfer req. Unknown Exception. {}:{}. {}", httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable.getMessage(), throwable);
                     httpServerReq.response().setStatusCode(503);
                     httpServerReq.response().setStatusMessage("ApiGateway: Exception in requesting target server");
                 }
@@ -161,7 +159,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             }
 
             httpServerReq.exceptionHandler(ex ->{
-                LOGGER.error("Exception in read http req:{}. {}", Utils.buildFullPath(httpServerReq), ex.getMessage(), ex);
+                LOGGER.error("Exception in read http req:{}.{}.", ex.getMessage(), Utils.buildFullPath(httpServerReq), ex);
                 forwardClientReq.end();
             });
 
@@ -297,7 +295,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
         } catch (Exception t ) {
             //一种保护机制，构造/发送StatisticItem不影响响应的正常返回
-            LOGGER.error("Failed to send StatisticItem for req:{}. {}", req.host() + req.path(), t.getMessage(), t);
+            LOGGER.error("Failed to send StatisticItem for req:{}. {}", t.getMessage(), req.host() + req.path(), t);
         }
     }
 
@@ -311,20 +309,27 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
     }
 
 
-    public static MultiMap clearDoorgodHeads( MultiMap headers ) {
-
+    public static MultiMap clearDoorgodHeads( HttpServerRequest req ) {
+        MultiMap origHeaders = req.headers();
         MultiMap result = null;
         try {
             result = new HeadersAdaptor(new DefaultHttpHeaders());
-            Set<String> names = headers.names();
+            Set<String> names = origHeaders.names();
             for ( String name : names ) {
                 if ( !name.startsWith(Constants.HEADER_DOOR_GOD_PREFIX)) {
-                    result.add(name, headers.getAll(name));
+                    result.add(name, origHeaders.getAll(name));
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Clear doorgod headers exception. use full headers instead.{}", e.getMessage(), e);
-            result = headers;
+            String fullHeaders = "";
+            try {
+                fullHeaders = buildHeadersStr(origHeaders);
+            } catch (Exception e1) {
+                LOGGER.error("Failed to read headers. {}, uri:{}", e1.getMessage(), Utils.buildFullPath(req), e1);
+            }
+            LOGGER.error("Clear doorgod headers exception. use full headers instead.{}. uri:{}. headers:{}",
+                    e.getMessage(), Utils.buildFullPath(req), fullHeaders, e);
+            result = origHeaders;
         }
         return result;
     };

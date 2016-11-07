@@ -79,7 +79,7 @@ public class CacheReloader implements KafkaRecordListener {
             }
         } catch ( Exception e ) {
             //记录下具体消费那条日志失败
-            LOGGER.error("Failed to consume kafka message:{}. {}", record, e.getMessage(), e);
+            LOGGER.error("Failed to consume kafka message:{}. {}", e.getMessage(), record, e);
             Offset offset = Offset.newInstance(record);
             failures.putIfAbsent(offset, new AtomicInteger(1));
 

@@ -5,3 +5,6 @@ init version 4
 1,mongo sample存储采用subDocument,而不是json
 2,uri解析失败，手动将key值从uri扣出来
 3,原请求删除doorgod相关header key失败，原Header直接塞到转发请求的Header
+
+2016-11-07
+1,完善异常日志
