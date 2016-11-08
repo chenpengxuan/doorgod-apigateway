@@ -132,6 +132,12 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
             forwardClientReq.headers().setAll(clearDoorgodHeads(httpServerReq));
 
+            /**
+             * 当<code>httpServerReq.method()</code>为{@link io.vertx.core.http.HttpMethod.OTHER}时,必须使用rawMethod
+             * 见{@link io.vertx.core.http.impl.HttpClientRequestImpl#connect(Handler)}
+             */
+            forwardClientReq.setRawMethod(httpServerReq.rawMethod());
+
             forwardClientReq.exceptionHandler(throwable -> {
                 LOGGER.error("Failed to transfer req.{}.{}:{}", throwable.getMessage(), httpServerReq.method(), Utils.buildFullUri(httpServerReq), throwable);
                 if (throwable instanceof java.net.ConnectException) {

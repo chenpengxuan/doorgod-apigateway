@@ -11,3 +11,4 @@ init version 4
 
 2016-11-08
 1,与TargetServer的请求，永远保持keep-alive
+2,转发请求的rawMethod始终传入
