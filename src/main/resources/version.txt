@@ -8,3 +8,6 @@ init version 4
 
 2016-11-07
 1,完善异常日志
+
+2016-11-08
+1,与TargetServer的请求，永远保持keep-alive

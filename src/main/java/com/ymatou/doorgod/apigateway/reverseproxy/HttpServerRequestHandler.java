@@ -331,6 +331,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                     e.getMessage(), Utils.buildFullPath(req), fullHeaders, e);
             result = origHeaders;
         }
+
+        //与Target Server永远保持Keep-alive
+        result.set("Connection", "keep-alive");
         return result;
     };
 
