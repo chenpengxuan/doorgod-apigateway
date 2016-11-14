@@ -110,7 +110,7 @@ public abstract class AbstractRule implements Ordered, Comparable<AbstractRule> 
         }
         for ( String applicable : applicableUris ) {
             try {
-                if (applicable.startsWith(hostUri.getUri())
+                if (hostUri.getUri().startsWith(applicable)
                         || Pattern.matches(applicable, hostUri.getUri())) {
                     return true;
                 }
