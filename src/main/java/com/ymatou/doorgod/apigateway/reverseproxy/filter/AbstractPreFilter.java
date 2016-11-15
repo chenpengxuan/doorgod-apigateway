@@ -1,5 +1,6 @@
 package com.ymatou.doorgod.apigateway.reverseproxy.filter;
 
+import com.ymatou.doorgod.apigateway.reverseproxy.VertxVerticleDeployer;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpServerRequest;
@@ -24,10 +25,13 @@ public abstract class AbstractPreFilter implements PreFilter {
             if ( context.hitRuleName == null ) {
                 context.hitRuleName = name( );
             }
-            Constants.REJECT_LOGGER.warn("Reject {} by ruleName:{}, Sample:{}",
-                    Utils.buildFullUri(req),
-                    context.hitRuleName,
-                    context.sample);
+
+            if (VertxVerticleDeployer.appConfig.isDebugMode()) {
+                Constants.REJECT_LOGGER.info("Reject {} by ruleName:{}, Sample:{}",
+                        Utils.buildFullUri(req),
+                        context.hitRuleName,
+                        context.sample);
+            }
 
         }
         return result;

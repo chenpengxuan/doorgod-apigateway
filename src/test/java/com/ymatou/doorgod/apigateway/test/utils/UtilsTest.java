@@ -48,6 +48,10 @@ public class UtilsTest {
 
         System.out.println( names );
 
+        long maxPlus1 = Long.MAX_VALUE + 1;
+
+        System.out.println( maxPlus1);
+
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerRequestHandler;
 import com.ymatou.doorgod.apigateway.reverseproxy.HttpServerVerticle;
+import com.ymatou.doorgod.apigateway.reverseproxy.VertxVerticleDeployer;
 import com.ymatou.doorgod.apigateway.utils.Constants;
 import com.ymatou.doorgod.apigateway.utils.Utils;
 import io.vertx.core.http.HttpClient;
@@ -67,11 +68,13 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         || HystrixForwardReqCommand.this.isResponseSemaphoreRejected()) {
 
                     //被Hystrix拦截
-                    Constants.REJECT_LOGGER.warn("Reject {} by Hystrix. circuitBreaker rejected:{}. maxConcurrent rejected:{}. circuitBreakerForceOpen:{} ",
-                            httpServerReq.host() + httpServerReq.path().toLowerCase(),
-                            HystrixForwardReqCommand.this.isResponseShortCircuited(),
-                            HystrixForwardReqCommand.this.isResponseSemaphoreRejected(),
-                            HystrixForwardReqCommand.this.getProperties().circuitBreakerForceOpen().get());
+                    if ( VertxVerticleDeployer.appConfig.isDebugMode()) {
+                        Constants.REJECT_LOGGER.info("Reject {} by Hystrix. circuitBreaker rejected:{}. maxConcurrent rejected:{}. circuitBreakerForceOpen:{} ",
+                                httpServerReq.host() + httpServerReq.path().toLowerCase(),
+                                HystrixForwardReqCommand.this.isResponseShortCircuited(),
+                                HystrixForwardReqCommand.this.isResponseSemaphoreRejected(),
+                                HystrixForwardReqCommand.this.getProperties().circuitBreakerForceOpen().get());
+                    }
 
                     Utils.addDoorGodHeader(httpServerReq, Constants.HEADER_REJECTED_BY_HYSTRIX, "true");
                     if (HystrixForwardReqCommand.this.isResponseShortCircuited()) {

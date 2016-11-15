@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PreDestroy;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -147,6 +148,12 @@ public class VertxVerticleDeployer {
         } else {
             LOGGER.warn("Targe server warmup url not set");
         }
+
+        vertx.setTimer(1000, id->{
+            //每一秒输出拒绝的请求数和通过的请求数
+            Counter.log();
+        });
+
         startUpSuccess = true;
         LOGGER.info("Succeed in startup ApiGateway. CPU cores:{}, Event loop thread count:{}",
                 Runtime.getRuntime().availableProcessors(),

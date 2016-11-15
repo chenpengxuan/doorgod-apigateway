@@ -278,32 +278,20 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
             if ( appConfig.isDebugMode()) {
                 //Debug模式，输出每个请求处理情况
                 Constants.ACCESS_LOGGER.info("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
-                                "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
+                                "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}, reqHeader:{}, {}",
                         item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
                         item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
-                        item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
-            } else {
-                if ( item.getStatusCode() != 200 && !req.path().equals("/favicon.ico")
-                        && !item.isRejectedByFilter() &&  !item.isRejectedByHystrix()) {
-                    //只输出目标服务器不是返回200的请求
-                    //被拒绝的请求，通过<code>Constants.REJECT_LOGGER</code>输出在reject.log
-                    Constants.ACCESS_LOGGER.warn("Processed:{}, consumed:{}, statusCode:{}," +
-                                    "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
-                            item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
-                            item.getHitRule(), item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
-                }
-            }
-
-
-            if (appConfig.isDebugMode()) {
-                Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
+                        item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp(),
+                        System.getProperty("line.separator"), buildHeadersStr(req.headers()));
             }
 
             //被挡的请求
             if (item.isRejectedByFilter() || item.isRejectedByHystrix()) {
+                Counter.incrRejectCount();
                 VertxVerticleDeployer.kafkaClient.sendRejectReqItem(item);
             }else {
                 //正常请求、用于决策引擎统计
+                Counter.incrPassCount();
                 VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
             }
 
