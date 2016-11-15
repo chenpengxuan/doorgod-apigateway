@@ -149,7 +149,7 @@ public class VertxVerticleDeployer {
             LOGGER.warn("Targe server warmup url not set");
         }
 
-        vertx.setTimer(1000, id->{
+        vertx.setPeriodic(1000, id->{
             //每一秒输出拒绝的请求数和通过的请求数
             Counter.log();
         });
