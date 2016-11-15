@@ -283,13 +283,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                         item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
                         item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
             } else {
-                if ( item.getStatusCode() != 200 || item.isRejectedByFilter() || item.isRejectedByHystrix()) {
-                    //只输出非正常处理的请求
-                    Constants.ACCESS_LOGGER.warn("Processed:{}, consumed:{}, statusCode:{}, rejectedByFilter:{}, rejectedByHystrix:{}," +
+                if ( item.getStatusCode() != 200 && !req.path().equals("/favicon.ico")
+                        && !item.isRejectedByFilter() &&  !item.isRejectedByHystrix()) {
+                    //只输出目标服务器不是返回200的请求
+                    //被拒绝的请求，通过<code>Constants.REJECT_LOGGER</code>输出在reject.log
+                    Constants.ACCESS_LOGGER.warn("Processed:{}, consumed:{}, statusCode:{}," +
                                     "hitRule:{}, origStatusCode:{}, filterConsumed:{}, ip:{}",
                             item.getHost() + item.getUri(), item.getConsumedTime(), item.getStatusCode(),
-                            item.isRejectedByFilter(), item.isRejectedByHystrix(), item.getHitRule(),
-                            item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
+                            item.getHitRule(), item.getOrigStatusCode(), item.getFilterConsumedTime(), item.getIp());
                 }
             }
 
@@ -298,7 +299,7 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
             }
 
-            //被档的请求
+            //被挡的请求
             if (item.isRejectedByFilter() || item.isRejectedByHystrix()) {
                 VertxVerticleDeployer.kafkaClient.sendRejectReqItem(item);
             }else {

@@ -67,7 +67,7 @@ public class HystrixForwardReqCommand extends HystrixObservableCommand<Void> {
                         || HystrixForwardReqCommand.this.isResponseSemaphoreRejected()) {
 
                     //被Hystrix拦截
-                    Constants.REJECT_LOGGER.warn("Failed to transfer request:{}. circuitBreaker rejected:{}. maxConcurrent rejected:{}. circuitBreakerForceOpen:{} ",
+                    Constants.REJECT_LOGGER.warn("Reject {} by Hystrix. circuitBreaker rejected:{}. maxConcurrent rejected:{}. circuitBreakerForceOpen:{} ",
                             httpServerReq.host() + httpServerReq.path().toLowerCase(),
                             HystrixForwardReqCommand.this.isResponseShortCircuited(),
                             HystrixForwardReqCommand.this.isResponseSemaphoreRejected(),

@@ -24,7 +24,7 @@ public abstract class AbstractPreFilter implements PreFilter {
             if ( context.hitRuleName == null ) {
                 context.hitRuleName = name( );
             }
-            Constants.REJECT_LOGGER.warn("Request:{} is rejected by ruleName:{}, Sample:{}",
+            Constants.REJECT_LOGGER.warn("Reject {} by ruleName:{}, Sample:{}",
                     Utils.buildFullUri(req),
                     context.hitRuleName,
                     context.sample);
