@@ -15,3 +15,6 @@ init version 4
 
 2016-11-14
 1,FIX BUG: uri startsWith匹配反了
+
+2016-11-15
+1.新增rejectReqEvent topic 用于发送被挡请求

@@ -16,6 +16,8 @@ public interface Constants {
 
     public static final String TOPIC_STATISTIC_SAMPLE_EVENT = "doorgod.statisticSampleEvent";
 
+    public static final String TOPIC_REJECT_REQ_EVENT = "doorgod.rejectReqEvent";
+
     public static final String TOPIC_UPDATE_OFFENDER_EVENT = "doorgod.updateOffenderEvent";
 
     public static final String TOPIC_UPDATE_RULE_EVENT = "doorgod.updateRuleEvent";

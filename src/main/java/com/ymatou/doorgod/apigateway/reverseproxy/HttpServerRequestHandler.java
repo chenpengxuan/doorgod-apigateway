@@ -298,7 +298,14 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
                 Constants.ACCESS_LOGGER.info("Req Header:{} {} {}", req.path(), System.getProperty("line.separator"), buildHeadersStr(req.headers()));
             }
 
-            VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
+            //被档的请求
+            if (item.isRejectedByFilter() || item.isRejectedByHystrix()) {
+                VertxVerticleDeployer.kafkaClient.sendRejectReqItem(item);
+            }else {
+                //正常请求、用于决策引擎统计
+                VertxVerticleDeployer.kafkaClient.sendStatisticItem(item);
+            }
+
         } catch (Exception t ) {
             //一种保护机制，构造/发送StatisticItem不影响响应的正常返回
             LOGGER.error("Failed to send StatisticItem for req:{}. {}", t.getMessage(), req.host() + req.path(), t);

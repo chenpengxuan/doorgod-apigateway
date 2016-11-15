@@ -155,6 +155,15 @@ public class KafkaClient {
         send( record );
     }
 
+    public void sendRejectReqItem(StatisticItem item) {
+        ProducerRecord<String, String> record = new ProducerRecord<String, String>(Constants.TOPIC_REJECT_REQ_EVENT,
+                null,
+                System.currentTimeMillis(),
+                null,
+                JSON.toJSONString(item));
+        send( record );
+    }
+
 
     private void send( ProducerRecord<String, String> record ) {
         try {
