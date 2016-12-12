@@ -50,6 +50,8 @@ public class UtilsTest {
 
         long maxPlus1 = Long.MAX_VALUE + 1;
 
+        System.out.println(Pattern.matches("10\\.11\\..*", "10.11.30.13"));
+
         System.out.println( maxPlus1);
 
     }
