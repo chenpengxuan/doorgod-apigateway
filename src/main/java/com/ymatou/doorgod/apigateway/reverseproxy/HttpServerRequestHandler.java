@@ -110,7 +110,9 @@ public class HttpServerRequestHandler implements Handler<HttpServerRequest> {
 
                         httpServerReq.response().headers().setAll(targetResp.headers());
 
-                        if ( !httpServerReq.response().headers().contains("Content-Length")) {
+                        if ( !httpServerReq.response().headers().contains("Content-Length")
+                                && httpServerReq.response().headers().getAll("Transfer-Encoding") != null
+                                && httpServerReq.response().headers().getAll("Transfer-Encoding").contains("chunked")) {
                             httpServerReq.response().setChunked(true);
                         }
 

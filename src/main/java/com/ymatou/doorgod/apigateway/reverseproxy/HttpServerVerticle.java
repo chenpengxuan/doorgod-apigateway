@@ -130,6 +130,9 @@ public class HttpServerVerticle extends AbstractVerticle {
                     LOGGER.error("Failed to warm up target server. {}", throwable.getMessage(), throwable);
                     vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, "fail");
                 });
+                req.connectionHandler(conn -> {
+                    vertx.eventBus().publish(VertxVerticleDeployer.ADDRESS_END_ONE_PRE_CONNECTION, VertxVerticleDeployer.SUCCESS_MSG);
+                });
                 req.end();
             }
 

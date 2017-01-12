@@ -26,10 +26,10 @@ public class ApigatewayApplicationTests extends BaseTest {
 			{
 				mySqlClient.locateTargetServer();
 				TargetServer server = new TargetServer();
-				server.setHost("172.16.103.127");
-				//server.setHost("localhost");
+				//server.setHost("172.16.103.127");
+				server.setHost("localhost");
 
-				server.setPort(8081);
+				server.setPort(8088);
 				result = server;
 
 			}

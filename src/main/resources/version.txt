@@ -1,24 +1,27 @@
-2016-11-01
-init version 4
+2017-01-12
+1.修正判断响应是否需要chunked的逻辑
+
+2016-12-12
+1.异常监控/性能监控 客户端版本升级
+
+2016-11-15-2
+1.新增rejectReqEvent topic 用于发送被挡请求
+2.优化日志
+
+2016-11-14
+1,FIX BUG: uri startsWith匹配反了
+
+2016-11-08
+1,与TargetServer的请求，永远保持keep-alive
+2,转发请求的rawMethod始终传入
+
+2016-11-07
+1,完善异常日志
 
 2016-11-04
 1,mongo sample存储采用subDocument,而不是json
 2,uri解析失败，手动将key值从uri扣出来
 3,原请求删除doorgod相关header key失败，原Header直接塞到转发请求的Header
 
-2016-11-07
-1,完善异常日志
-
-2016-11-08
-1,与TargetServer的请求，永远保持keep-alive
-2,转发请求的rawMethod始终传入
-
-2016-11-14
-1,FIX BUG: uri startsWith匹配反了
-
-2016-11-15-2
-1.新增rejectReqEvent topic 用于发送被挡请求
-2.优化日志
-
-2016-12-12
-1.异常监控/性能监控 客户端版本升级
+2016-11-01
+init version 4
